@@ -73,3 +73,20 @@ function sendPasswordResetEmail($email, $username, $token) {
     
     return sendEmail($email, $subject, $body);
 }
+
+function sendCommentNotificationEmail($email, $username, $commenterUsername, $imageId) {
+    $baseUrl = getBaseUrl();
+    $imageLink = $baseUrl . "/#image-" . $imageId;
+    
+    $subject = "New comment on your photo";
+    $body = "
+        <h2>New Comment</h2>
+        <p>Hello $username,</p>
+        <p>$commenterUsername commented on your photo.</p>
+        <p><a href='$imageLink' class='button'>View Photo</a></p>
+        <p>Or copy and paste this link into your browser:</p>
+        <p>$imageLink</p>
+    ";
+    
+    return sendEmail($email, $subject, $body);
+}
