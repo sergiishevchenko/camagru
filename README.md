@@ -110,56 +110,56 @@ docker-compose ps
 
 ```
 camagru/
-├── backend/              # Server-side (PHP)
+├── backend/                                       # Server-side (PHP)
 │   ├── src/
-│   │   ├── config/       # Configuration files
+│   │   ├── config/                                # Configuration files
 │   │   │   ├── bootstrap.php
 │   │   │   ├── database.php
 │   │   │   ├── env.php
 │   │   │   └── router.php
-│   │   ├── controllers/  # Controllers
+│   │   ├── controllers/                           # Controllers
 │   │   │   ├── AuthController.php
 │   │   │   ├── ImageController.php
 │   │   │   ├── GalleryController.php
 │   │   │   ├── LikeController.php
 │   │   │   └── CommentController.php
-│   │   ├── models/       # Data models
+│   │   ├── models/                                # Data models
 │   │   │   ├── User.php
 │   │   │   ├── Image.php
 │   │   │   ├── Like.php
 │   │   │   └── Comment.php
-│   │   ├── views/        # Views (PHP templates)
+│   │   ├── views/                                 # Views (PHP templates)
 │   │   │   ├── layout.php
 │   │   │   ├── index.php
 │   │   │   ├── login.php
 │   │   │   ├── register.php
 │   │   │   ├── edit.php
 │   │   │   └── ...
-│   │   ├── middleware/   # Middleware
+│   │   ├── middleware/                            # Middleware
 │   │   │   └── AuthMiddleware.php
-│   │   └── utils/        # Utilities
+│   │   └── utils/                                 # Utilities
 │   │       ├── functions.php
 │   │       ├── email.php
 │   │       └── image_processor.php
-│   ├── public/           # Public directory (web root)
-│   │   ├── index.php     # Entry point
-│   │   ├── uploads/      # User uploaded images
-│   │   └── .htaccess     # Apache rewrite rules
+│   ├── public/                                    # Public directory (web root)
+│   │   ├── index.php                              # Entry point
+│   │   ├── uploads/                               # User uploaded images
+│   │   └── .htaccess                              # Apache rewrite rules
 │   ├── Dockerfile
 │   └── apache-config.conf
-├── frontend/             # Client-side
-│   ├── css/              # Stylesheets
+├── frontend/                                      # Client-side
+│   ├── css/                                       # Stylesheets
 │   │   └── style.css
-│   ├── js/               # JavaScript files
-│   │   ├── edit.js       # Webcam and image upload
-│   │   └── gallery.js    # Gallery interactions (likes, comments)
-│   └── images/           # Static images
-│       └── overlays/     # Overlay images (PNG with alpha)
-├── database/             # SQL schemas
+│   ├── js/                                        # JavaScript files
+│   │   ├── edit.js                                # Webcam and image upload
+│   │   └── gallery.js                             # Gallery interactions (likes, comments)
+│   └── images/                                    # Static images
+│       └── overlays/                              # Overlay images (PNG with alpha)
+├── database/                                      # SQL schemas
 │   └── schema.sql
-├── docker-compose.yml    # Docker configuration
-├── PROJECT_PLAN.md       # Project plan and progress
-└── README.md             # This file
+├── docker-compose.yml                             # Docker configuration
+├── PROJECT_PLAN.md                                # Project plan and progress
+└── README.md                                      # This file
 ```
 
 ## API Endpoints
