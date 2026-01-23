@@ -287,32 +287,6 @@ docker-compose restart web
 
 **Note**: Webcam functionality requires HTTPS in production or localhost for development.
 
-## Troubleshooting
-
-### Camera not working
-- Ensure you're using HTTPS or localhost
-- Check browser permissions for camera access
-- Try a different browser
-
-### Images not uploading
-- Check file size (max 5MB)
-- Ensure file is JPG, PNG, or GIF
-- Check uploads directory permissions
-
-### Database connection errors
-- Ensure database container is running: `docker-compose ps`
-- Check database logs: `docker-compose logs db`
-- Verify `.env` file has correct credentials
-
-### Email not sending
-- Check MailHog is running: http://localhost:8025
-- Verify SMTP settings in `.env`
-- Check mailhog logs: `docker-compose logs mailhog`
-
 ## License
 
 This project is part of the 42 School curriculum.
-
-## Author
-
-42 Lausanne - Camagru Project
