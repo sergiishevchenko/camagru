@@ -158,7 +158,6 @@ camagru/
 ├── database/                                      # SQL schemas
 │   └── schema.sql
 ├── docker-compose.yml                             # Docker configuration
-├── PROJECT_PLAN.md                                # Project plan and progress
 └── README.md                                      # This file
 ```
 
