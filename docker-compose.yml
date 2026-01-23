@@ -11,6 +11,9 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./backend/public/uploads:/var/www/html/public/uploads
+      - ./frontend/css:/var/www/html/public/css
+      - ./frontend/js:/var/www/html/public/js
+      - ./frontend/images:/var/www/html/public/images
     depends_on:
       - db
     networks:
