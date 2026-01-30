@@ -2,10 +2,13 @@
     let stream = null;
     let selectedOverlay = null;
     let capturedImage = null;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    let capturedImageObj = null;
+    let overlayImage = null;
+    let previewAnimationId = null;
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
+    const previewCanvas = document.getElementById('preview-canvas');
     const startBtn = document.getElementById('start-camera');
     const stopBtn = document.getElementById('stop-camera');
     const captureBtn = document.getElementById('capture');
@@ -37,6 +40,83 @@
         return input ? input.value : '';
     }
 
+    function getPreviewSource() {
+        if (capturedImage) return capturedImage;
+        if (stream && video.readyState >= 2) return video;
+        return null;
+    }
+
+    function drawLivePreview() {
+        if (!previewCanvas || !overlayImage || !overlayImage.complete || !overlayImage.naturalWidth) {
+            previewAnimationId = requestAnimationFrame(drawLivePreview);
+            return;
+        }
+        const source = getPreviewSource();
+        if (!source) {
+            previewCanvas.style.display = 'none';
+            previewAnimationId = requestAnimationFrame(drawLivePreview);
+            return;
+        }
+        let w, h;
+        if (source === video) {
+            w = video.videoWidth;
+            h = video.videoHeight;
+        } else if (capturedImageObj && capturedImageObj.complete && capturedImageObj.naturalWidth) {
+            w = capturedImageObj.naturalWidth;
+            h = capturedImageObj.naturalHeight;
+        } else {
+            previewAnimationId = requestAnimationFrame(drawLivePreview);
+            return;
+        }
+        if (previewCanvas.width !== w || previewCanvas.height !== h) {
+            previewCanvas.width = w;
+            previewCanvas.height = h;
+        }
+        const ctx = previewCanvas.getContext('2d');
+        if (source === video) {
+            ctx.drawImage(video, 0, 0);
+        } else {
+            ctx.drawImage(capturedImageObj, 0, 0);
+        }
+        ctx.drawImage(overlayImage, 0, 0, w, h);
+        previewCanvas.style.display = 'block';
+        previewAnimationId = requestAnimationFrame(drawLivePreview);
+    }
+
+    function startLivePreview() {
+        if (!previewAnimationId) {
+            previewAnimationId = requestAnimationFrame(drawLivePreview);
+        }
+    }
+
+    function stopLivePreview() {
+        if (previewAnimationId) {
+            cancelAnimationFrame(previewAnimationId);
+            previewAnimationId = null;
+        }
+        if (previewCanvas) {
+            previewCanvas.style.display = 'none';
+        }
+    }
+
+    function loadOverlayForPreview(name) {
+        if (!name) {
+            overlayImage = null;
+            stopLivePreview();
+            return;
+        }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            overlayImage = img;
+            startLivePreview();
+        };
+        img.onerror = function() {
+            overlayImage = null;
+        };
+        img.src = '/images/overlays/' + name + '.png';
+    }
+
     startBtn.addEventListener('click', async function() {
         try {
             stream = await navigator.mediaDevices.getUserMedia({ 
@@ -50,6 +130,7 @@
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
             captureBtn.disabled = !selectedOverlay;
+            if (selectedOverlay && overlayImage) startLivePreview();
         } catch (err) {
             showMessage('Error accessing camera: ' + err.message, true);
         }
@@ -63,6 +144,7 @@
             startBtn.style.display = 'inline-block';
             stopBtn.style.display = 'none';
             captureBtn.disabled = true;
+            if (!capturedImage) stopLivePreview();
         }
     });
 
@@ -93,9 +175,17 @@
 
         const reader = new FileReader();
         reader.onload = function(event) {
-            preview.src = event.target.result;
-            previewContainer.style.display = 'block';
             capturedImage = event.target.result;
+            capturedImageObj = new Image();
+            capturedImageObj.onload = function() {
+                preview.src = capturedImage;
+                previewContainer.style.display = 'block';
+                if (selectedOverlay) {
+                    captureBtn.disabled = false;
+                    if (overlayImage) startLivePreview();
+                }
+            };
+            capturedImageObj.src = capturedImage;
         };
         reader.readAsDataURL(file);
     });
@@ -110,6 +200,8 @@
         previewContainer.style.display = 'none';
         fileInput.value = '';
         capturedImage = null;
+        capturedImageObj = null;
+        if (!stream) stopLivePreview();
     });
 
     overlayItems.forEach(item => {
@@ -119,7 +211,12 @@
             selectedOverlay = this.dataset.overlay;
             selectedOverlayName.textContent = selectedOverlay;
             overlaySelected.style.display = 'block';
-            captureBtn.disabled = !stream;
+            captureBtn.disabled = !stream && !capturedImage;
+            if (selectedOverlay) {
+                loadOverlayForPreview(selectedOverlay);
+            } else {
+                stopLivePreview();
+            }
         });
     });
 

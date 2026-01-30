@@ -7,6 +7,7 @@
         <div class="camera-section">
             <div class="video-container">
                 <video id="video" autoplay playsinline></video>
+                <canvas id="preview-canvas" class="preview-canvas" style="display: none;"></canvas>
                 <canvas id="canvas" style="display: none;"></canvas>
             </div>
             
