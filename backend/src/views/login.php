@@ -28,3 +28,4 @@
         <a href="/register">Don't have an account? Register</a>
     </p>
 </div>
+<script src="/js/auth.js"></script>

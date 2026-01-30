@@ -46,3 +46,4 @@
         <a href="/login">Back to Login</a>
     </p>
 </div>
+<script src="/js/auth.js"></script>

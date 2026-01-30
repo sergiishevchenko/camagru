@@ -55,3 +55,4 @@
         <a href="/login">Already have an account? Login</a>
     </p>
 </div>
+<script src="/js/auth.js"></script>
