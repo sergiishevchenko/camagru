@@ -13,6 +13,7 @@ require_once __DIR__ . '/../src/middleware/AuthMiddleware.php';
 $router = new Router();
 
 $router->get('/', [GalleryController::class, 'index']);
+$router->get('/image/{id}', [GalleryController::class, 'showImage']);
 
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login']);
@@ -36,6 +37,7 @@ $router->post('/profile', [ProfileController::class, 'update'], AuthMiddleware::
 $router->get('/edit', [ImageController::class, 'showEdit'], AuthMiddleware::class);
 $router->post('/edit/capture', [ImageController::class, 'capture'], AuthMiddleware::class);
 $router->post('/edit/upload', [ImageController::class, 'upload'], AuthMiddleware::class);
+$router->post('/edit/gif', [ImageController::class, 'createGif'], AuthMiddleware::class);
 
 $router->delete('/image/{id}', [ImageController::class, 'delete'], AuthMiddleware::class);
 
