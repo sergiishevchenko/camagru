@@ -7,6 +7,7 @@ require_once __DIR__ . '/../src/controllers/ImageController.php';
 require_once __DIR__ . '/../src/controllers/GalleryController.php';
 require_once __DIR__ . '/../src/controllers/LikeController.php';
 require_once __DIR__ . '/../src/controllers/CommentController.php';
+require_once __DIR__ . '/../src/controllers/ProfileController.php';
 require_once __DIR__ . '/../src/middleware/AuthMiddleware.php';
 
 $router = new Router();
@@ -28,6 +29,9 @@ $router->get('/reset-password/{token}', [AuthController::class, 'showResetPasswo
 $router->post('/reset-password', [AuthController::class, 'resetPassword']);
 
 $router->get('/logout', [AuthController::class, 'logout']);
+
+$router->get('/profile', [ProfileController::class, 'show'], AuthMiddleware::class);
+$router->post('/profile', [ProfileController::class, 'update'], AuthMiddleware::class);
 
 $router->get('/edit', [ImageController::class, 'showEdit'], AuthMiddleware::class);
 $router->post('/edit/capture', [ImageController::class, 'capture'], AuthMiddleware::class);
