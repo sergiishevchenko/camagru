@@ -5,6 +5,7 @@
     let capturedImageObj = null;
     let overlayImage = null;
     let previewAnimationId = null;
+    let gifFrames = [];
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -21,6 +22,10 @@
     const overlaySelected = document.getElementById('overlay-selected');
     const selectedOverlayName = document.getElementById('selected-overlay-name');
     const messageDiv = document.getElementById('message');
+    const addGifFrameBtn = document.getElementById('add-gif-frame');
+    const createGifBtn = document.getElementById('create-gif');
+    const clearGifFramesBtn = document.getElementById('clear-gif-frames');
+    const gifFrameCountEl = document.getElementById('gif-frame-count');
 
     function showMessage(text, isError = false) {
         messageDiv.textContent = text;
@@ -117,6 +122,94 @@
         img.src = '/images/overlays/' + name + '.png';
     }
 
+    function getCurrentFrameAsBase64() {
+        const source = getPreviewSource();
+        if (!source || !overlayImage || !overlayImage.complete) return null;
+        let w, h;
+        if (source === video) {
+            w = video.videoWidth;
+            h = video.videoHeight;
+        } else if (capturedImageObj && capturedImageObj.complete) {
+            w = capturedImageObj.naturalWidth;
+            h = capturedImageObj.naturalHeight;
+        } else return null;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (source === video) {
+            ctx.drawImage(video, 0, 0);
+        } else {
+            ctx.drawImage(capturedImageObj, 0, 0);
+        }
+        ctx.drawImage(overlayImage, 0, 0, w, h);
+        return canvas.toDataURL('image/png');
+    }
+
+    function updateGifUI() {
+        if (gifFrameCountEl) gifFrameCountEl.textContent = gifFrames.length + ' frames';
+        if (createGifBtn) createGifBtn.disabled = gifFrames.length < 2 || gifFrames.length > 30;
+    }
+
+    if (addGifFrameBtn) {
+        addGifFrameBtn.addEventListener('click', function() {
+            if (!selectedOverlay || !overlayImage) {
+                showMessage('Select an overlay and start camera or upload image first', true);
+                return;
+            }
+            const base64 = getCurrentFrameAsBase64();
+            if (!base64) {
+                showMessage('Could not capture frame', true);
+                return;
+            }
+            if (gifFrames.length >= 30) {
+                showMessage('Maximum 30 frames', true);
+                return;
+            }
+            gifFrames.push(base64);
+            updateGifUI();
+        });
+    }
+    if (createGifBtn) {
+        createGifBtn.addEventListener('click', function() {
+            if (gifFrames.length < 2) {
+                showMessage('Add at least 2 frames', true);
+                return;
+            }
+            const token = getCSRFToken();
+            if (!token) {
+                showMessage('CSRF token not found', true);
+                return;
+            }
+            createGifBtn.disabled = true;
+            showMessage('Creating GIF...', false);
+            fetch('/edit/gif', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ frames: gifFrames, csrf_token: token })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    showMessage('GIF created!', false);
+                    setTimeout(function() { window.location.href = '/'; }, 1500);
+                } else {
+                    showMessage(data.error || 'Failed to create GIF', true);
+                    createGifBtn.disabled = false;
+                }
+            })
+            .catch(function(err) {
+                showMessage('Error: ' + err.message, true);
+                createGifBtn.disabled = false;
+            });
+        });
+    }
+    if (clearGifFramesBtn) {
+        clearGifFramesBtn.addEventListener('click', function() {
+            gifFrames = [];
+            updateGifUI();
+        });
+    }
+
     startBtn.addEventListener('click', async function() {
         try {
             stream = await navigator.mediaDevices.getUserMedia({ 
@@ -130,6 +223,7 @@
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
             captureBtn.disabled = !selectedOverlay;
+            if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
             if (selectedOverlay && overlayImage) startLivePreview();
         } catch (err) {
             showMessage('Error accessing camera: ' + err.message, true);
@@ -144,6 +238,7 @@
             startBtn.style.display = 'inline-block';
             stopBtn.style.display = 'none';
             captureBtn.disabled = true;
+            if (addGifFrameBtn) addGifFrameBtn.disabled = true;
             if (!capturedImage) stopLivePreview();
         }
     });
@@ -182,6 +277,7 @@
                 previewContainer.style.display = 'block';
                 if (selectedOverlay) {
                     captureBtn.disabled = false;
+                    if (addGifFrameBtn) addGifFrameBtn.disabled = false;
                     if (overlayImage) startLivePreview();
                 }
             };
@@ -212,6 +308,7 @@
             selectedOverlayName.textContent = selectedOverlay;
             overlaySelected.style.display = 'block';
             captureBtn.disabled = !stream && !capturedImage;
+            if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay || (!stream && !capturedImage);
             if (selectedOverlay) {
                 loadOverlayForPreview(selectedOverlay);
             } else {

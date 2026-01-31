@@ -27,6 +27,17 @@
                 <button id="use-preview" class="button">Use This Image</button>
                 <button id="cancel-preview" class="button">Cancel</button>
             </div>
+
+            <div class="gif-section">
+                <h3>Animated GIF</h3>
+                <p class="gif-hint">Add 2–30 frames, then create GIF.</p>
+                <div class="gif-controls">
+                    <button id="add-gif-frame" class="button" disabled>Add frame</button>
+                    <button id="create-gif" class="button" disabled>Create GIF</button>
+                    <button id="clear-gif-frames" class="button">Clear</button>
+                </div>
+                <p id="gif-frame-count" class="gif-frame-count">0 frames</p>
+            </div>
         </div>
         
         <div class="overlay-section">
