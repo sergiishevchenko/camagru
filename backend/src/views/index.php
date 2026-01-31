@@ -1,6 +1,7 @@
 <?php $view = 'index'; ?>
+<?php $baseUrl = getBaseUrl(); ?>
 
-<div class="gallery-container">
+<div class="gallery-container" data-authenticated="<?php echo isAuthenticated() ? '1' : '0'; ?>" data-base-url="<?php echo e($baseUrl); ?>" data-next-page="<?php echo isset($infiniteScroll) && $infiniteScroll && !empty($images) && !empty($hasNextPage) ? $currentPage + 1 : ''; ?>">
     <h2>Gallery</h2>
     
     <?php if (empty($images)): ?>
@@ -34,6 +35,10 @@
                                 <span class="like-icon">♥</span>
                                 <span class="like-count"><?php echo $image['like_count'] ?? 0; ?></span>
                             </button>
+                            <div class="share-buttons">
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-fb" title="Share on Facebook">f</a>
+                                <a href="https://twitter.com/intent/tweet?url=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>&text=<?php echo e(rawurlencode('Camagru photo by @' . $image['username'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-tw" title="Share on Twitter">𝕏</a>
+                            </div>
                         </div>
                         <div class="comments-section">
                             <div class="comments-list" id="comments-<?php echo $image['id']; ?>"></div>
@@ -49,14 +54,15 @@
             <?php endforeach; ?>
         </div>
         
-        <?php if ($totalPages > 1): ?>
+        <?php if (isset($infiniteScroll) && $infiniteScroll && $hasNextPage): ?>
+            <div id="load-more-sentinel" class="load-more-sentinel"></div>
+            <div id="load-more-status" class="load-more-status" style="display: none;"></div>
+        <?php elseif (isset($totalPages) && $totalPages > 1): ?>
             <div class="pagination">
                 <?php if ($hasPrevPage): ?>
                     <a href="/?page=<?php echo $currentPage - 1; ?>" class="button">Previous</a>
                 <?php endif; ?>
-                
                 <span class="page-info">Page <?php echo $currentPage; ?> of <?php echo $totalPages; ?></span>
-                
                 <?php if ($hasNextPage): ?>
                     <a href="/?page=<?php echo $currentPage + 1; ?>" class="button">Next</a>
                 <?php endif; ?>
