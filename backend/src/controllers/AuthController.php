@@ -11,6 +11,26 @@ class AuthController {
         $this->userModel = new User();
     }
 
+    private function isAjaxRequest() {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+
+    private function getPostData() {
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (strpos($contentType, 'application/json') !== false) {
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true);
+            return is_array($data) ? $data : [];
+        }
+        return $_POST;
+    }
+
+    private function jsonResponse($success, $data = []) {
+        header('Content-Type: application/json');
+        echo json_encode(array_merge(['success' => $success], $data));
+    }
+
     public function showLogin() {
         if (isAuthenticated()) {
             redirect('/');
@@ -21,35 +41,60 @@ class AuthController {
 
     public function login() {
         if (isAuthenticated()) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(true, ['redirect' => '/']);
+                return;
+            }
             redirect('/');
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Method not allowed']);
+                return;
+            }
             redirect('/login');
             return;
         }
 
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $post = $this->getPostData();
+        if (!verifyCSRFToken($post['csrf_token'] ?? '')) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid request']);
+                return;
+            }
             $this->renderView('login', ['title' => 'Login', 'error' => 'Invalid request']);
             return;
         }
 
-        $username = trim($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
+        $username = trim($post['username'] ?? '');
+        $password = $post['password'] ?? '';
 
         if (empty($username) || empty($password)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Username and password are required']);
+                return;
+            }
             $this->renderView('login', ['title' => 'Login', 'error' => 'Username and password are required']);
             return;
         }
 
         $user = $this->userModel->findByUsername($username);
         if (!$user || !verifyPassword($password, $user['password_hash'])) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid username or password']);
+                return;
+            }
             $this->renderView('login', ['title' => 'Login', 'error' => 'Invalid username or password']);
             return;
         }
 
         if (!$user['email_verified']) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Please verify your email address first']);
+                return;
+            }
             $this->renderView('login', ['title' => 'Login', 'error' => 'Please verify your email address first']);
             return;
         }
@@ -61,6 +106,10 @@ class AuthController {
         $_SESSION['username'] = $user['username'];
         generateCSRFToken();
 
+        if ($this->isAjaxRequest()) {
+            $this->jsonResponse(true, ['redirect' => '/']);
+            return;
+        }
         redirect('/');
     }
 
@@ -74,24 +123,37 @@ class AuthController {
 
     public function register() {
         if (isAuthenticated()) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(true, ['redirect' => '/']);
+                return;
+            }
             redirect('/');
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Method not allowed']);
+                return;
+            }
             redirect('/register');
             return;
         }
 
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $post = $this->getPostData();
+        if (!verifyCSRFToken($post['csrf_token'] ?? '')) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid request']);
+                return;
+            }
             $this->renderView('register', ['title' => 'Register', 'error' => 'Invalid request']);
             return;
         }
 
-        $username = trim($_POST['username'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $username = trim($post['username'] ?? '');
+        $email = trim($post['email'] ?? '');
+        $password = $post['password'] ?? '';
+        $confirmPassword = $post['confirm_password'] ?? '';
 
         $errors = [];
 
@@ -124,6 +186,10 @@ class AuthController {
         }
 
         if (!empty($errors)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['errors' => $errors]);
+                return;
+            }
             $this->renderView('register', ['title' => 'Register', 'errors' => $errors]);
             return;
         }
@@ -132,17 +198,27 @@ class AuthController {
             $result = $this->userModel->create($username, $email, $password);
             
             if (sendVerificationEmail($email, $username, $result['verification_token'])) {
+                if ($this->isAjaxRequest()) {
+                    $this->jsonResponse(true, ['message' => 'Registration successful! Please check your email to verify your account.']);
+                    return;
+                }
                 $this->renderView('register', [
                     'title' => 'Register',
                     'success' => 'Registration successful! Please check your email to verify your account.'
                 ]);
             } else {
-                $this->renderView('register', [
-                    'title' => 'Register',
-                    'error' => 'Registration successful, but failed to send verification email. Please contact support.'
-                ]);
+                $msg = 'Registration successful, but failed to send verification email. Please contact support.';
+                if ($this->isAjaxRequest()) {
+                    $this->jsonResponse(true, ['message' => $msg]);
+                    return;
+                }
+                $this->renderView('register', ['title' => 'Register', 'error' => $msg]);
             }
         } catch (Exception $e) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Registration failed. Please try again.']);
+                return;
+            }
             $this->renderView('register', ['title' => 'Register', 'error' => 'Registration failed. Please try again.']);
         }
     }
@@ -170,23 +246,40 @@ class AuthController {
 
     public function forgotPassword() {
         if (isAuthenticated()) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(true, ['redirect' => '/']);
+                return;
+            }
             redirect('/');
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Method not allowed']);
+                return;
+            }
             redirect('/forgot-password');
             return;
         }
 
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $post = $this->getPostData();
+        if (!verifyCSRFToken($post['csrf_token'] ?? '')) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid request']);
+                return;
+            }
             $this->renderView('forgot-password', ['title' => 'Forgot Password', 'error' => 'Invalid request']);
             return;
         }
 
-        $email = trim($_POST['email'] ?? '');
+        $email = trim($post['email'] ?? '');
 
         if (empty($email) || !isValidEmail($email)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid email address']);
+                return;
+            }
             $this->renderView('forgot-password', ['title' => 'Forgot Password', 'error' => 'Invalid email address']);
             return;
         }
@@ -199,10 +292,12 @@ class AuthController {
             sendPasswordResetEmail($email, $user['username'], $token);
         }
 
-        $this->renderView('forgot-password', [
-            'title' => 'Forgot Password',
-            'success' => 'If an account with that email exists, a password reset link has been sent.'
-        ]);
+        $msg = 'If an account with that email exists, a password reset link has been sent.';
+        if ($this->isAjaxRequest()) {
+            $this->jsonResponse(true, ['message' => $msg]);
+            return;
+        }
+        $this->renderView('forgot-password', ['title' => 'Forgot Password', 'success' => $msg]);
     }
 
     public function showResetPassword($token) {
@@ -221,25 +316,42 @@ class AuthController {
 
     public function resetPassword() {
         if (isAuthenticated()) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(true, ['redirect' => '/']);
+                return;
+            }
             redirect('/');
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Method not allowed']);
+                return;
+            }
             redirect('/forgot-password');
             return;
         }
 
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            $this->renderView('reset-password', ['title' => 'Reset Password', 'error' => 'Invalid request', 'token' => $_POST['token'] ?? '']);
+        $post = $this->getPostData();
+        if (!verifyCSRFToken($post['csrf_token'] ?? '')) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid request']);
+                return;
+            }
+            $this->renderView('reset-password', ['title' => 'Reset Password', 'error' => 'Invalid request', 'token' => $post['token'] ?? '']);
             return;
         }
 
-        $token = $_POST['token'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $token = $post['token'] ?? '';
+        $password = $post['password'] ?? '';
+        $confirmPassword = $post['confirm_password'] ?? '';
 
         if (empty($token)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid token']);
+                return;
+            }
             redirect('/forgot-password');
             return;
         }
@@ -257,13 +369,25 @@ class AuthController {
         }
 
         if (!empty($errors)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['errors' => $errors]);
+                return;
+            }
             $this->renderView('reset-password', ['title' => 'Reset Password', 'errors' => $errors, 'token' => $token]);
             return;
         }
 
         if ($this->userModel->resetPassword($token, $password)) {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(true, ['message' => 'Password has been reset successfully.', 'redirect' => '/login']);
+                return;
+            }
             $this->renderView('reset-password', ['title' => 'Reset Password', 'success' => true]);
         } else {
+            if ($this->isAjaxRequest()) {
+                $this->jsonResponse(false, ['error' => 'Invalid or expired reset token']);
+                return;
+            }
             $this->renderView('reset-password', ['title' => 'Reset Password', 'error' => 'Invalid or expired reset token', 'token' => $token]);
         }
     }
