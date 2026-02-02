@@ -71,6 +71,46 @@ class ImageController {
         ]);
     }
 
+    public function createGif() {
+        header('Content-Type: application/json');
+        if (!isAuthenticated()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+            return;
+        }
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!verifyCSRFToken($data['csrf_token'] ?? '')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
+            return;
+        }
+        $frames = $data['frames'] ?? [];
+        if (!is_array($frames) || empty($frames)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Frames array required']);
+            return;
+        }
+        $delayTicks = isset($data['delay']) ? max(5, min(50, (int)$data['delay'])) : 10;
+        $result = createAnimatedGif($frames, $delayTicks);
+        if (!$result['success']) {
+            http_response_code(400);
+            echo json_encode($result);
+            return;
+        }
+        $userId = getCurrentUserId();
+        $imageId = $this->imageModel->create($userId, $result['filename'], 'gif');
+        echo json_encode([
+            'success' => true,
+            'image_id' => $imageId,
+            'filename' => $result['filename']
+        ]);
+    }
+
     public function upload() {
         header('Content-Type: application/json');
         
