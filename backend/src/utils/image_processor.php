@@ -144,3 +144,39 @@ function getAvailableOverlays() {
     
     return $overlays;
 }
+
+function createAnimatedGif(array $base64Frames, $delayTicks = 10) {
+    if (!class_exists('Imagick')) {
+        return ['success' => false, 'error' => 'Imagick extension is required for GIF creation'];
+    }
+    if (count($base64Frames) < 2 || count($base64Frames) > 30) {
+        return ['success' => false, 'error' => 'Between 2 and 30 frames required'];
+    }
+    $uploadDir = __DIR__ . '/../../public/uploads/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    try {
+        $gif = new Imagick();
+        $gif->setFormat('gif');
+        foreach ($base64Frames as $base64) {
+            $data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64));
+            if ($data === false) {
+                return ['success' => false, 'error' => 'Invalid frame data'];
+            }
+            $frame = new Imagick();
+            $frame->readImageBlob($data);
+            $frame->setImageDelay($delayTicks);
+            $frame->setImageFormat('gif');
+            $gif->addImage($frame);
+            $frame->destroy();
+        }
+        $filename = uniqid('gif_', true) . '.gif';
+        $filepath = $uploadDir . $filename;
+        $gif->writeImages($filepath, true);
+        $gif->destroy();
+        return ['success' => true, 'filename' => $filename];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => 'Failed to create GIF: ' . $e->getMessage()];
+    }
+}
