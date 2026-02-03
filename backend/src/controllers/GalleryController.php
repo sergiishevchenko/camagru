@@ -27,13 +27,51 @@ class GalleryController {
             $image['is_owner'] = $userId && $image['user_id'] == $userId;
         }
 
+        $wantsJson = !empty($_GET['format']) && $_GET['format'] === 'json' ||
+            (!empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        if ($wantsJson) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'images' => $images,
+                'page' => $page,
+                'hasMore' => $page < $totalPages,
+                'nextPage' => $page < $totalPages ? $page + 1 : null
+            ]);
+            return;
+        }
+
         $this->renderView('index', [
             'title' => 'Camagru - Gallery',
             'images' => $images,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'hasNextPage' => $page < $totalPages,
-            'hasPrevPage' => $page > 1
+            'hasPrevPage' => $page > 1,
+            'infiniteScroll' => true
+        ]);
+    }
+
+    public function showImage($id) {
+        $id = (int)$id;
+        $image = $this->imageModel->findById($id);
+        if (!$image) {
+            http_response_code(404);
+            echo '404 - Image not found';
+            return;
+        }
+        $baseUrl = getBaseUrl();
+        $imageUrl = $baseUrl . '/uploads/' . $image['filename'];
+        $pageUrl = $baseUrl . '/image/' . $id;
+        $title = 'Camagru - Photo by @' . $image['username'];
+        $this->renderView('image', [
+            'title' => $title,
+            'image' => $image,
+            'imageUrl' => $imageUrl,
+            'metaOg' => [
+                'title' => $title,
+                'image' => $imageUrl,
+                'url' => $pageUrl
+            ]
         ]);
     }
 
