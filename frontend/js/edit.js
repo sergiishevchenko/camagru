@@ -122,9 +122,9 @@
         img.src = '/images/overlays/' + name + '.png';
     }
 
-    function getCurrentFrameAsBase64() {
+    function getRawFrameAsBase64() {
         const source = getPreviewSource();
-        if (!source || !overlayImage || !overlayImage.complete) return null;
+        if (!source) return null;
         let w, h;
         if (source === video) {
             w = video.videoWidth;
@@ -141,7 +141,6 @@
         } else {
             ctx.drawImage(capturedImageObj, 0, 0);
         }
-        ctx.drawImage(overlayImage, 0, 0, w, h);
         return canvas.toDataURL('image/png');
     }
 
@@ -152,11 +151,11 @@
 
     if (addGifFrameBtn) {
         addGifFrameBtn.addEventListener('click', function() {
-            if (!selectedOverlay || !overlayImage) {
-                showMessage('Select an overlay and start camera or upload image first', true);
+            if (!selectedOverlay) {
+                showMessage('Please select an overlay first', true);
                 return;
             }
-            const base64 = getCurrentFrameAsBase64();
+            const base64 = getRawFrameAsBase64();
             if (!base64) {
                 showMessage('Could not capture frame', true);
                 return;
@@ -185,7 +184,7 @@
             fetch('/edit/gif', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ frames: gifFrames, csrf_token: token })
+                body: JSON.stringify({ frames: gifFrames, overlay_id: selectedOverlay || '', csrf_token: token })
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -248,7 +247,6 @@
             showMessage('Please select an overlay first', true);
             return;
         }
-
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
@@ -262,12 +260,6 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        if (!selectedOverlay) {
-            showMessage('Please select an overlay first', true);
-            fileInput.value = '';
-            return;
-        }
-
         const reader = new FileReader();
         reader.onload = function(event) {
             capturedImage = event.target.result;
@@ -275,11 +267,9 @@
             capturedImageObj.onload = function() {
                 preview.src = capturedImage;
                 previewContainer.style.display = 'block';
-                if (selectedOverlay) {
-                    captureBtn.disabled = false;
-                    if (addGifFrameBtn) addGifFrameBtn.disabled = false;
-                    if (overlayImage) startLivePreview();
-                }
+                captureBtn.disabled = !selectedOverlay;
+                if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
+                if (selectedOverlay && overlayImage) startLivePreview();
             };
             capturedImageObj.src = capturedImage;
         };
@@ -287,7 +277,11 @@
     });
 
     usePreviewBtn.addEventListener('click', function() {
-        if (capturedImage && selectedOverlay) {
+        if (!selectedOverlay) {
+            showMessage('Please select an overlay first', true);
+            return;
+        }
+        if (capturedImage) {
             sendImage(capturedImage);
         }
     });
@@ -307,13 +301,41 @@
             selectedOverlay = this.dataset.overlay;
             selectedOverlayName.textContent = selectedOverlay;
             overlaySelected.style.display = 'block';
-            captureBtn.disabled = !stream && !capturedImage;
+            captureBtn.disabled = !selectedOverlay || (!stream && !capturedImage);
             if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay || (!stream && !capturedImage);
             if (selectedOverlay) {
                 loadOverlayForPreview(selectedOverlay);
             } else {
                 stopLivePreview();
             }
+        });
+    });
+
+    document.querySelectorAll('.delete-thumb').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!confirm('Delete this image?')) return;
+            var imageId = this.dataset.imageId;
+            var token = getCSRFToken();
+            if (!token) return;
+            this.disabled = true;
+            fetch('/image/' + imageId, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf_token: token })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    var thumb = document.getElementById('thumb-' + imageId);
+                    if (thumb) thumb.remove();
+                } else {
+                    showMessage(data.error || 'Failed to delete', true);
+                }
+            })
+            .catch(function() {
+                showMessage('Error deleting image', true);
+            });
         });
     });
 
@@ -334,7 +356,7 @@
             },
             body: JSON.stringify({
                 image: imageData,
-                overlay_id: selectedOverlay,
+                overlay_id: selectedOverlay || '',
                 csrf_token: token
             })
         })
