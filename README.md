@@ -148,9 +148,31 @@ Created automatically on first run. Schema: `database/schema.sql`.
 
 Default DB (from `.env`): host `db`, database `camagru_db`, user `camagru_user`.
 
-## Email (Development)
+## Email / SMTP Configuration
 
-MailHog: http://localhost:8025. Used for verification, password reset, and comment notifications.
+The app sends emails for account verification, password reset, and comment notifications.
+
+The project includes [MailHog](https://github.com/mailhog/MailHog) in `docker-compose.yml`. It intercepts all outgoing emails — nothing is actually sent. Default `.env` values work out of the box:
+
+```env
+SMTP_HOST=mailhog
+SMTP_PORT=1025
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM_EMAIL=noreply@camagru.local
+SMTP_FROM_NAME=Camagru
+```
+
+| Variable | Description |
+|---|---|
+| `SMTP_HOST` | MailHog Docker service name |
+| `SMTP_PORT` | MailHog SMTP port |
+| `SMTP_USER` | Empty — MailHog needs no auth |
+| `SMTP_PASS` | Empty — MailHog needs no auth |
+| `SMTP_FROM_EMAIL` | "From" address (cosmetic) |
+| `SMTP_FROM_NAME` | "From" display name (cosmetic) |
+
+All captured emails are visible at http://localhost:8025.
 
 ## Security
 
