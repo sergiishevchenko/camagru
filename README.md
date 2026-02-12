@@ -152,7 +152,30 @@ Default DB (from `.env`): host `db`, database `camagru_db`, user `camagru_user`.
 
 The app sends emails for account verification, password reset, and comment notifications.
 
-The project includes [MailHog](https://github.com/mailhog/MailHog) in `docker-compose.yml`. It intercepts all outgoing emails — nothing is actually sent. Default `.env` values work out of the box:
+| Variable | Description | Where to get |
+|---|---|---|
+| `SMTP_HOST` | SMTP server address | Your email provider's SMTP settings page |
+| `SMTP_PORT` | SMTP port | `587` (TLS) or `465` (SSL) for most providers, `1025` for MailHog |
+| `SMTP_USER` | SMTP login (usually your email) | Your email account |
+| `SMTP_PASS` | SMTP password or app password | Provider's security settings (see below) |
+| `SMTP_FROM_EMAIL` | "From" address shown to recipients | Any valid email you own |
+| `SMTP_FROM_NAME` | "From" display name | Any name (e.g. "Camagru") |
+
+**Common providers:**
+
+| Provider | SMTP_HOST | SMTP_PORT | SMTP_PASS |
+|---|---|---|---|
+| Gmail | `smtp.gmail.com` | `587` | App Password (Google Account → Security → 2FA → App passwords) |
+| Outlook / Hotmail | `smtp-mail.outlook.com` | `587` | Account password or app password |
+| Yahoo | `smtp.mail.yahoo.com` | `587` | App Password (Yahoo Account → Security → App passwords) |
+| Mailtrap (testing) | `sandbox.smtp.mailtrap.io` | `2525` | From Mailtrap inbox settings |
+| MailHog (local dev) | `mailhog` | `1025` | Leave empty |
+
+> **Gmail / Yahoo:** You must enable 2-Factor Authentication first, then generate an App Password. Regular account password will not work.
+
+### Development (default)
+
+MailHog is included in `docker-compose.yml` — catches all emails locally, nothing is actually sent:
 
 ```env
 SMTP_HOST=mailhog
@@ -163,16 +186,20 @@ SMTP_FROM_EMAIL=noreply@camagru.local
 SMTP_FROM_NAME=Camagru
 ```
 
-| Variable | Description |
-|---|---|
-| `SMTP_HOST` | MailHog Docker service name |
-| `SMTP_PORT` | MailHog SMTP port |
-| `SMTP_USER` | Empty — MailHog needs no auth |
-| `SMTP_PASS` | Empty — MailHog needs no auth |
-| `SMTP_FROM_EMAIL` | "From" address (cosmetic) |
-| `SMTP_FROM_NAME` | "From" display name (cosmetic) |
+Captured emails: http://localhost:8025
 
-All captured emails are visible at http://localhost:8025.
+### Production example (Gmail)
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your.email@gmail.com
+SMTP_PASS=abcd-efgh-ijkl-mnop
+SMTP_FROM_EMAIL=your.email@gmail.com
+SMTP_FROM_NAME=Camagru
+```
+
+> `SMTP_PASS` here is an **App Password**, not your Google account password. Generate it at: Google Account → Security → 2-Step Verification → App passwords.
 
 ## Security
 
