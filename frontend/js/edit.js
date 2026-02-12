@@ -364,27 +364,30 @@
     document.querySelectorAll('.delete-thumb').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (!confirm('Delete this image?')) return;
-            var imageId = this.dataset.imageId;
-            var token = getCSRFToken();
-            if (!token) return;
-            this.disabled = true;
-            fetch('/image/' + imageId, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ csrf_token: token })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    var thumb = document.getElementById('thumb-' + imageId);
-                    if (thumb) thumb.remove();
-                } else {
-                    showMessage(data.error || 'Failed to delete', true);
-                }
-            })
-            .catch(function() {
-                showMessage('Error deleting image', true);
+            var self = this;
+            var imageId = self.dataset.imageId;
+            window.confirmModal('Delete this photo?').then(function(ok) {
+                if (!ok) return;
+                var token = getCSRFToken();
+                if (!token) return;
+                self.disabled = true;
+                fetch('/image/' + imageId, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csrf_token: token })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        var thumb = document.getElementById('thumb-' + imageId);
+                        if (thumb) thumb.remove();
+                    } else {
+                        showMessage(data.error || 'Failed to delete', true);
+                    }
+                })
+                .catch(function() {
+                    showMessage('Error deleting image', true);
+                });
             });
         });
     });

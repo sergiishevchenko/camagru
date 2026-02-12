@@ -2,15 +2,15 @@
 
 <div class="edit-container">
     <div class="edit-layout">
-        <div class="edit-main">
+        <div class="edit-header">
             <h2>Create Your Photo</h2>
-
             <div class="steps-guide">
-                <div class="step" id="step-1"><span class="step-num">1</span> Start camera or upload image</div>
-                <div class="step" id="step-2"><span class="step-num">2</span> Choose an overlay below</div>
-                <div class="step" id="step-3"><span class="step-num">3</span> Click Capture</div>
+                <div class="step" id="step-1"><span class="step-num">1</span> Start camera or upload</div>
+                <div class="step" id="step-2"><span class="step-num">2</span> Choose overlay</div>
+                <div class="step" id="step-3"><span class="step-num">3</span> Capture</div>
             </div>
-
+        </div>
+        <div class="edit-main">
             <div class="camera-section">
                 <div class="video-container">
                     <video id="video" autoplay playsinline></video>

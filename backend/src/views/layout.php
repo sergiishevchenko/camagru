@@ -30,7 +30,7 @@
             </button>
             <nav>
                 <?php if (isAuthenticated()): ?>
-                    <a href="/edit">Edit</a>
+                    <a href="/edit">+ New Photo</a>
                     <a href="/profile">Profile</a>
                     <a href="/logout">Logout</a>
                 <?php else: ?>
@@ -59,6 +59,15 @@
             <p>&copy; <?php echo date('Y'); ?> Camagru &mdash; A 42 School Project</p>
         </div>
     </footer>
+    <div id="confirm-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <p id="confirm-modal-text">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="confirm-modal-cancel" class="button modal-btn-cancel" type="button">Cancel</button>
+                <button id="confirm-modal-ok" class="button modal-btn-ok" type="button">Delete</button>
+            </div>
+        </div>
+    </div>
     <script>
     (function() {
         var toggle = document.getElementById('nav-toggle');
@@ -69,6 +78,28 @@
             });
         }
     })();
+    window.confirmModal = function(text) {
+        return new Promise(function(resolve) {
+            var overlay = document.getElementById('confirm-modal');
+            var msg = document.getElementById('confirm-modal-text');
+            var okBtn = document.getElementById('confirm-modal-ok');
+            var cancelBtn = document.getElementById('confirm-modal-cancel');
+            msg.textContent = text || 'Are you sure?';
+            overlay.style.display = 'flex';
+            function cleanup() {
+                overlay.style.display = 'none';
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                overlay.removeEventListener('click', onOverlay);
+            }
+            function onOk() { cleanup(); resolve(true); }
+            function onCancel() { cleanup(); resolve(false); }
+            function onOverlay(e) { if (e.target === overlay) { cleanup(); resolve(false); } }
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            overlay.addEventListener('click', onOverlay);
+        });
+    };
     </script>
 </body>
 </html>

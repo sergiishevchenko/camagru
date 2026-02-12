@@ -133,29 +133,31 @@
     }
 
     function deleteImage(btn) {
-        if (!confirm('Are you sure you want to delete this image?')) return;
-        const imageId = btn.dataset.imageId;
-        const token = getCSRFToken();
-        if (!token) { alert('CSRF token not found'); return; }
-        btn.disabled = true;
-        fetch('/image/' + imageId, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ csrf_token: token })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                const card = document.getElementById('image-' + imageId);
-                if (card) card.remove();
-            } else {
-                alert(data.error || 'Failed to delete image');
+        window.confirmModal('Delete this photo?').then(function(ok) {
+            if (!ok) return;
+            var imageId = btn.dataset.imageId;
+            var token = getCSRFToken();
+            if (!token) return;
+            btn.disabled = true;
+            fetch('/image/' + imageId, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf_token: token })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    var card = document.getElementById('image-' + imageId);
+                    if (card) card.remove();
+                } else {
+                    alert(data.error || 'Failed to delete image');
+                    btn.disabled = false;
+                }
+            })
+            .catch(function() {
+                alert('An error occurred');
                 btn.disabled = false;
-            }
-        })
-        .catch(function() {
-            alert('An error occurred');
-            btn.disabled = false;
+            });
         });
     }
 
