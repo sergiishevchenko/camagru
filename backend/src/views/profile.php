@@ -7,18 +7,59 @@
         <div class="error"><?php echo e($_SESSION['profile_error']); unset($_SESSION['profile_error']); ?></div>
     <?php endif; ?>
 
+    <?php if (isset($_SESSION['profile_errors'])): ?>
+        <div class="error">
+            <ul>
+                <?php foreach ($_SESSION['profile_errors'] as $err): ?>
+                    <li><?php echo e($err); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php unset($_SESSION['profile_errors']); ?>
+    <?php endif; ?>
+
     <?php if (isset($_SESSION['profile_success'])): ?>
         <div class="success"><?php echo e($_SESSION['profile_success']); unset($_SESSION['profile_success']); ?></div>
     <?php endif; ?>
 
     <div class="profile-card">
-        <div class="profile-info">
-            <p><strong>Username:</strong> <?php echo e($user['username']); ?></p>
-            <p><strong>Email:</strong> <?php echo e($user['email']); ?></p>
-        </div>
-
         <form method="POST" action="/profile" class="profile-form">
             <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username"
+                       value="<?php echo e($user['username']); ?>"
+                       pattern="[a-zA-Z0-9_]+" minlength="3" maxlength="50"
+                       title="3-50 characters, letters, numbers, and underscores only">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email"
+                       value="<?php echo e($user['email']); ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password"
+                       placeholder="Required only when changing password">
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password"
+                       minlength="8"
+                       placeholder="Leave empty to keep current"
+                       title="At least 8 characters with letters and numbers">
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password"
+                       placeholder="Repeat new password">
+            </div>
+
             <div class="form-group profile-option">
                 <label>
                     <input type="checkbox" name="email_notifications" value="1"
@@ -26,6 +67,7 @@
                     Email notifications for new comments
                 </label>
             </div>
+
             <button type="submit" class="button">Save</button>
         </form>
     </div>

@@ -1,14 +1,9 @@
 <?php
 
-function processImageWithOverlay($base64Image, $overlayId) {
+function processImageWithOverlay($base64Image, $overlayId = null) {
     $uploadDir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
-    }
-
-    $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
-    if (!file_exists($overlayPath)) {
-        return ['success' => false, 'error' => 'Overlay not found'];
     }
 
     $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
@@ -21,40 +16,47 @@ function processImageWithOverlay($base64Image, $overlayId) {
         return ['success' => false, 'error' => 'Failed to create image from data'];
     }
 
-    $overlayImage = imagecreatefrompng($overlayPath);
-    if ($overlayImage === false) {
-        imagedestroy($sourceImage);
-        return ['success' => false, 'error' => 'Failed to load overlay'];
+    if (!empty($overlayId)) {
+        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        if (!file_exists($overlayPath)) {
+            imagedestroy($sourceImage);
+            return ['success' => false, 'error' => 'Overlay not found'];
+        }
+
+        $overlayImage = imagecreatefrompng($overlayPath);
+        if ($overlayImage === false) {
+            imagedestroy($sourceImage);
+            return ['success' => false, 'error' => 'Failed to load overlay'];
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        $overlayWidth = imagesx($overlayImage);
+        $overlayHeight = imagesy($overlayImage);
+
+        $x = ($sourceWidth - $overlayWidth) / 2;
+        $y = ($sourceHeight - $overlayHeight) / 2;
+
+        imagealphablending($sourceImage, true);
+        imagesavealpha($sourceImage, true);
+        imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
+        imagedestroy($overlayImage);
     }
-
-    $sourceWidth = imagesx($sourceImage);
-    $sourceHeight = imagesy($sourceImage);
-    $overlayWidth = imagesx($overlayImage);
-    $overlayHeight = imagesy($overlayImage);
-
-    $x = ($sourceWidth - $overlayWidth) / 2;
-    $y = ($sourceHeight - $overlayHeight) / 2;
-
-    imagealphablending($sourceImage, true);
-    imagesavealpha($sourceImage, true);
-    imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
 
     $filename = uniqid('img_', true) . '.png';
     $filepath = $uploadDir . $filename;
 
     if (!imagepng($sourceImage, $filepath)) {
         imagedestroy($sourceImage);
-        imagedestroy($overlayImage);
         return ['success' => false, 'error' => 'Failed to save image'];
     }
 
     imagedestroy($sourceImage);
-    imagedestroy($overlayImage);
 
     return ['success' => true, 'filename' => $filename];
 }
 
-function processUploadedImage($uploadedFile, $overlayId) {
+function processUploadedImage($uploadedFile, $overlayId = null) {
     $uploadDir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
@@ -78,11 +80,6 @@ function processUploadedImage($uploadedFile, $overlayId) {
         return ['success' => false, 'error' => 'File too large'];
     }
 
-    $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
-    if (!file_exists($overlayPath)) {
-        return ['success' => false, 'error' => 'Overlay not found'];
-    }
-
     $sourceImage = null;
     if ($mimeType === 'image/jpeg' || $mimeType === 'image/jpg') {
         $sourceImage = imagecreatefromjpeg($uploadedFile['tmp_name']);
@@ -96,35 +93,42 @@ function processUploadedImage($uploadedFile, $overlayId) {
         return ['success' => false, 'error' => 'Failed to create image from file'];
     }
 
-    $overlayImage = imagecreatefrompng($overlayPath);
-    if ($overlayImage === false) {
-        imagedestroy($sourceImage);
-        return ['success' => false, 'error' => 'Failed to load overlay'];
+    if (!empty($overlayId)) {
+        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        if (!file_exists($overlayPath)) {
+            imagedestroy($sourceImage);
+            return ['success' => false, 'error' => 'Overlay not found'];
+        }
+
+        $overlayImage = imagecreatefrompng($overlayPath);
+        if ($overlayImage === false) {
+            imagedestroy($sourceImage);
+            return ['success' => false, 'error' => 'Failed to load overlay'];
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        $overlayWidth = imagesx($overlayImage);
+        $overlayHeight = imagesy($overlayImage);
+
+        $x = ($sourceWidth - $overlayWidth) / 2;
+        $y = ($sourceHeight - $overlayHeight) / 2;
+
+        imagealphablending($sourceImage, true);
+        imagesavealpha($sourceImage, true);
+        imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
+        imagedestroy($overlayImage);
     }
-
-    $sourceWidth = imagesx($sourceImage);
-    $sourceHeight = imagesy($sourceImage);
-    $overlayWidth = imagesx($overlayImage);
-    $overlayHeight = imagesy($overlayImage);
-
-    $x = ($sourceWidth - $overlayWidth) / 2;
-    $y = ($sourceHeight - $overlayHeight) / 2;
-
-    imagealphablending($sourceImage, true);
-    imagesavealpha($sourceImage, true);
-    imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
 
     $filename = uniqid('img_', true) . '.png';
     $filepath = $uploadDir . $filename;
 
     if (!imagepng($sourceImage, $filepath)) {
         imagedestroy($sourceImage);
-        imagedestroy($overlayImage);
         return ['success' => false, 'error' => 'Failed to save image'];
     }
 
     imagedestroy($sourceImage);
-    imagedestroy($overlayImage);
 
     return ['success' => true, 'filename' => $filename];
 }
@@ -145,12 +149,20 @@ function getAvailableOverlays() {
     return $overlays;
 }
 
-function createAnimatedGif(array $base64Frames, $delayTicks = 10) {
+function createAnimatedGif(array $base64Frames, $overlayId = null, $delayTicks = 10) {
     if (!class_exists('Imagick')) {
         return ['success' => false, 'error' => 'Imagick extension is required for GIF creation'];
     }
     if (count($base64Frames) < 2 || count($base64Frames) > 30) {
         return ['success' => false, 'error' => 'Between 2 and 30 frames required'];
+    }
+    $overlayBlob = null;
+    if (!empty($overlayId)) {
+        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        if (!file_exists($overlayPath)) {
+            return ['success' => false, 'error' => 'Overlay not found'];
+        }
+        $overlayBlob = file_get_contents($overlayPath);
     }
     $uploadDir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($uploadDir)) {
@@ -166,6 +178,13 @@ function createAnimatedGif(array $base64Frames, $delayTicks = 10) {
             }
             $frame = new Imagick();
             $frame->readImageBlob($data);
+            if ($overlayBlob !== null) {
+                $overlay = new Imagick();
+                $overlay->readImageBlob($overlayBlob);
+                $overlay->resizeImage($frame->getImageWidth(), $frame->getImageHeight(), Imagick::FILTER_LANCZOS, 1);
+                $frame->compositeImage($overlay, Imagick::COMPOSITE_OVER, 0, 0);
+                $overlay->destroy();
+            }
             $frame->setImageDelay($delayTicks);
             $frame->setImageFormat('gif');
             $gif->addImage($frame);

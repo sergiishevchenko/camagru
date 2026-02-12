@@ -18,9 +18,12 @@ class ImageController {
         }
 
         $overlays = getAvailableOverlays();
+        $userId = getCurrentUserId();
+        $userImages = $this->imageModel->getByUserId($userId);
         $this->renderView('edit', [
             'title' => 'Edit Photo',
-            'overlays' => $overlays
+            'overlays' => $overlays,
+            'userImages' => $userImages
         ]);
     }
 
@@ -41,7 +44,7 @@ class ImageController {
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (!isset($data['image']) || !isset($data['overlay_id'])) {
+        if (!isset($data['image'])) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Missing required fields']);
             return;
@@ -53,7 +56,8 @@ class ImageController {
             return;
         }
 
-        $result = processImageWithOverlay($data['image'], $data['overlay_id']);
+        $overlayId = !empty($data['overlay_id']) ? $data['overlay_id'] : null;
+        $result = processImageWithOverlay($data['image'], $overlayId);
         
         if (!$result['success']) {
             http_response_code(400);
@@ -62,7 +66,7 @@ class ImageController {
         }
 
         $userId = getCurrentUserId();
-        $imageId = $this->imageModel->create($userId, $result['filename'], $data['overlay_id']);
+        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayId);
 
         echo json_encode([
             'success' => true,
@@ -95,15 +99,16 @@ class ImageController {
             echo json_encode(['success' => false, 'error' => 'Frames array required']);
             return;
         }
+        $overlayId = !empty($data['overlay_id']) ? $data['overlay_id'] : null;
         $delayTicks = isset($data['delay']) ? max(5, min(50, (int)$data['delay'])) : 10;
-        $result = createAnimatedGif($frames, $delayTicks);
+        $result = createAnimatedGif($frames, $overlayId, $delayTicks);
         if (!$result['success']) {
             http_response_code(400);
             echo json_encode($result);
             return;
         }
         $userId = getCurrentUserId();
-        $imageId = $this->imageModel->create($userId, $result['filename'], 'gif');
+        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayId);
         echo json_encode([
             'success' => true,
             'image_id' => $imageId,
@@ -126,7 +131,7 @@ class ImageController {
             return;
         }
 
-        if (!isset($_POST['overlay_id']) || !isset($_FILES['image'])) {
+        if (!isset($_FILES['image'])) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Missing required fields']);
             return;
@@ -138,7 +143,8 @@ class ImageController {
             return;
         }
 
-        $result = processUploadedImage($_FILES['image'], $_POST['overlay_id']);
+        $overlayId = !empty($_POST['overlay_id']) ? $_POST['overlay_id'] : null;
+        $result = processUploadedImage($_FILES['image'], $overlayId);
         
         if (!$result['success']) {
             http_response_code(400);
@@ -147,7 +153,7 @@ class ImageController {
         }
 
         $userId = getCurrentUserId();
-        $imageId = $this->imageModel->create($userId, $result['filename'], $_POST['overlay_id']);
+        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayId);
 
         echo json_encode([
             'success' => true,

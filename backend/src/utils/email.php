@@ -2,16 +2,30 @@
 
 require_once __DIR__ . '/../config/env.php';
 
+function smtpSend($socket, $command, $expectedCode = 250) {
+    fwrite($socket, $command . "\r\n");
+    $response = '';
+    while ($line = fgets($socket, 515)) {
+        $response .= $line;
+        if (isset($line[3]) && $line[3] === ' ') {
+            break;
+        }
+    }
+    $code = (int)substr($response, 0, 3);
+    if ($code !== $expectedCode) {
+        error_log("SMTP error: expected $expectedCode, got $code. Response: $response");
+        return false;
+    }
+    return true;
+}
+
 function sendEmail($to, $subject, $body) {
     $smtpHost = env('SMTP_HOST', 'mailhog');
-    $smtpPort = env('SMTP_PORT', 1025);
+    $smtpPort = (int)env('SMTP_PORT', 1025);
+    $smtpUser = env('SMTP_USER', '');
+    $smtpPass = env('SMTP_PASS', '');
     $fromEmail = env('SMTP_FROM_EMAIL', 'noreply@camagru.local');
     $fromName = env('SMTP_FROM_NAME', 'Camagru');
-
-    $headers = "From: $fromName <$fromEmail>\r\n";
-    $headers .= "Reply-To: $fromEmail\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
     $message = "<!DOCTYPE html>
 <html>
@@ -34,8 +48,70 @@ function sendEmail($to, $subject, $body) {
 </body>
 </html>";
 
-    $result = mail($to, $subject, $message, $headers);
-    return $result;
+    $socket = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 10);
+    if (!$socket) {
+        error_log("SMTP connection failed: $errstr ($errno)");
+        return false;
+    }
+
+    $greeting = fgets($socket, 515);
+    if ((int)substr($greeting, 0, 3) !== 220) {
+        fclose($socket);
+        return false;
+    }
+
+    if (!smtpSend($socket, "EHLO localhost", 250)) {
+        fclose($socket);
+        return false;
+    }
+
+    if (!empty($smtpUser) && !empty($smtpPass)) {
+        if (!smtpSend($socket, "AUTH LOGIN", 334)) {
+            fclose($socket);
+            return false;
+        }
+        if (!smtpSend($socket, base64_encode($smtpUser), 334)) {
+            fclose($socket);
+            return false;
+        }
+        if (!smtpSend($socket, base64_encode($smtpPass), 235)) {
+            fclose($socket);
+            return false;
+        }
+    }
+
+    if (!smtpSend($socket, "MAIL FROM:<$fromEmail>", 250)) {
+        fclose($socket);
+        return false;
+    }
+
+    if (!smtpSend($socket, "RCPT TO:<$to>", 250)) {
+        fclose($socket);
+        return false;
+    }
+
+    if (!smtpSend($socket, "DATA", 354)) {
+        fclose($socket);
+        return false;
+    }
+
+    $headers = "From: $fromName <$fromEmail>\r\n";
+    $headers .= "To: $to\r\n";
+    $headers .= "Subject: $subject\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "Date: " . date('r') . "\r\n";
+    $headers .= "Message-ID: <" . uniqid('camagru_') . "@camagru.local>\r\n";
+
+    $data = $headers . "\r\n" . $message . "\r\n.";
+    if (!smtpSend($socket, $data, 250)) {
+        fclose($socket);
+        return false;
+    }
+
+    smtpSend($socket, "QUIT", 221);
+    fclose($socket);
+    return true;
 }
 
 function sendVerificationEmail($email, $username, $token) {

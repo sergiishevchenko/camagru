@@ -59,10 +59,63 @@ class ProfileController {
             return;
         }
 
+        $errors = [];
+        $data = [];
+
+        $newUsername = trim($_POST['username'] ?? '');
+        if (!empty($newUsername) && $newUsername !== $user['username']) {
+            if (strlen($newUsername) < 3 || strlen($newUsername) > 50) {
+                $errors[] = 'Username must be between 3 and 50 characters';
+            } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $newUsername)) {
+                $errors[] = 'Username can only contain letters, numbers, and underscores';
+            } elseif ($this->userModel->findByUsername($newUsername)) {
+                $errors[] = 'Username already taken';
+            } else {
+                $data['username'] = $newUsername;
+            }
+        }
+
+        $newEmail = trim($_POST['email'] ?? '');
+        if (!empty($newEmail) && $newEmail !== $user['email']) {
+            if (!isValidEmail($newEmail)) {
+                $errors[] = 'Invalid email format';
+            } elseif ($this->userModel->findByEmail($newEmail)) {
+                $errors[] = 'Email already registered';
+            } else {
+                $data['email'] = $newEmail;
+            }
+        }
+
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        if (!empty($newPassword)) {
+            if (empty($currentPassword)) {
+                $errors[] = 'Current password is required to set a new password';
+            } elseif (!verifyPassword($currentPassword, $user['password_hash'])) {
+                $errors[] = 'Current password is incorrect';
+            } elseif (!isValidPassword($newPassword)) {
+                $errors[] = 'New password must be at least 8 characters with letters and numbers';
+            } elseif ($newPassword !== $confirmPassword) {
+                $errors[] = 'New passwords do not match';
+            } else {
+                $data['password_hash'] = hashPassword($newPassword);
+            }
+        }
+
         $emailNotifications = isset($_POST['email_notifications']) ? 1 : 0;
-        $data = ['email_notifications' => $emailNotifications];
+        $data['email_notifications'] = $emailNotifications;
+
+        if (!empty($errors)) {
+            $_SESSION['profile_errors'] = $errors;
+            redirect('/profile');
+            return;
+        }
 
         if ($this->userModel->update($userId, $data)) {
+            if (isset($data['username'])) {
+                $_SESSION['username'] = $data['username'];
+            }
             $_SESSION['profile_success'] = 'Profile updated successfully.';
         } else {
             $_SESSION['profile_error'] = 'Failed to update profile.';
