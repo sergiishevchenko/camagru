@@ -27,6 +27,26 @@
     const clearGifFramesBtn = document.getElementById('clear-gif-frames');
     const gifFrameCountEl = document.getElementById('gif-frame-count');
 
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+
+    function updateSteps() {
+        var hasSource = !!(stream || capturedImage);
+        var hasOverlay = !!selectedOverlay;
+        if (step1) {
+            step1.className = hasSource ? 'step done' : 'step active';
+        }
+        if (step2) {
+            step2.className = hasSource && hasOverlay ? 'step done' : hasSource ? 'step active' : 'step';
+        }
+        if (step3) {
+            step3.className = hasSource && hasOverlay ? 'step active' : 'step';
+        }
+    }
+
+    updateSteps();
+
     function showMessage(text, isError = false) {
         messageDiv.textContent = text;
         messageDiv.className = isError ? 'message error' : 'message success';
@@ -210,7 +230,12 @@
     }
 
     startBtn.addEventListener('click', async function() {
+        startBtn.disabled = true;
+        startBtn.textContent = 'Starting...';
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera not supported. Use HTTPS or localhost.');
+            }
             stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { 
                     facingMode: 'user',
@@ -219,13 +244,32 @@
                 } 
             });
             video.srcObject = stream;
+            await video.play();
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
             captureBtn.disabled = !selectedOverlay;
             if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
             if (selectedOverlay && overlayImage) startLivePreview();
+            updateSteps();
+            showMessage('Camera ready! Select an overlay, then capture.', false);
+            var overlaySection = document.querySelector('.overlay-section');
+            if (overlaySection) {
+                setTimeout(function() {
+                    overlaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
         } catch (err) {
-            showMessage('Error accessing camera: ' + err.message, true);
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Camera';
+            var msg = 'Camera error: ' + err.message;
+            if (err.name === 'NotAllowedError') {
+                msg = 'Camera access denied. Allow camera in browser settings and try again.';
+            } else if (err.name === 'NotFoundError') {
+                msg = 'No camera found. You can upload an image instead.';
+            } else if (err.name === 'NotReadableError') {
+                msg = 'Camera is busy (used by another app). Close it and try again.';
+            }
+            showMessage(msg, true);
         }
     });
 
@@ -235,10 +279,13 @@
             stream = null;
             video.srcObject = null;
             startBtn.style.display = 'inline-block';
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Camera';
             stopBtn.style.display = 'none';
             captureBtn.disabled = true;
             if (addGifFrameBtn) addGifFrameBtn.disabled = true;
             if (!capturedImage) stopLivePreview();
+            updateSteps();
         }
     });
 
@@ -272,6 +319,7 @@
                 if (selectedOverlay && overlayImage) startLivePreview();
             };
             capturedImageObj.src = capturedImage;
+            updateSteps();
         };
         reader.readAsDataURL(file);
     });
@@ -292,6 +340,7 @@
         capturedImage = null;
         capturedImageObj = null;
         if (!stream) stopLivePreview();
+        updateSteps();
     });
 
     overlayItems.forEach(item => {
@@ -308,6 +357,7 @@
             } else {
                 stopLivePreview();
             }
+            updateSteps();
         });
     });
 

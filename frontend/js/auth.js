@@ -2,39 +2,52 @@
     var form = document.querySelector('.auth-form form');
     if (!form) return;
 
-    var errorContainer = form.closest('.auth-form').querySelector('.error');
-    var successContainer = form.closest('.auth-form').querySelector('.success');
     var authLink = form.closest('.auth-form').querySelector('.auth-link');
 
-    function showError(msg) {
-        if (errorContainer) {
-            errorContainer.innerHTML = msg;
-            errorContainer.style.display = 'block';
-            if (successContainer) successContainer.style.display = 'none';
-        } else {
-            var div = document.createElement('div');
-            div.className = 'error';
-            div.textContent = msg;
-            form.insertBefore(div, form.firstChild);
+    function getOrCreateContainer(cls) {
+        var c = form.closest('.auth-form').querySelector('.' + cls);
+        if (!c) {
+            c = document.createElement('div');
+            c.className = cls;
+            c.style.display = 'none';
+            form.parentNode.insertBefore(c, form);
         }
+        return c;
+    }
+
+    function showError(msg) {
+        var el = getOrCreateContainer('error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        var s = form.closest('.auth-form').querySelector('.success');
+        if (s) s.style.display = 'none';
     }
 
     function showErrors(messages) {
-        var msg = Array.isArray(messages) ? '<ul><li>' + messages.join('</li><li>') + '</li></ul>' : messages;
-        showError(msg);
+        if (!Array.isArray(messages)) {
+            showError(messages);
+            return;
+        }
+        var el = getOrCreateContainer('error');
+        el.textContent = '';
+        var ul = document.createElement('ul');
+        for (var i = 0; i < messages.length; i++) {
+            var li = document.createElement('li');
+            li.textContent = messages[i];
+            ul.appendChild(li);
+        }
+        el.appendChild(ul);
+        el.style.display = 'block';
+        var s = form.closest('.auth-form').querySelector('.success');
+        if (s) s.style.display = 'none';
     }
 
     function showSuccess(msg) {
-        if (successContainer) {
-            successContainer.innerHTML = msg;
-            successContainer.style.display = 'block';
-            if (errorContainer) errorContainer.style.display = 'none';
-        } else {
-            var div = document.createElement('div');
-            div.className = 'success';
-            div.innerHTML = msg;
-            form.insertBefore(div, form.firstChild);
-        }
+        var el = getOrCreateContainer('success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        var e = form.closest('.auth-form').querySelector('.error');
+        if (e) e.style.display = 'none';
     }
 
     function getCSRFToken() {

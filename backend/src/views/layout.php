@@ -14,6 +14,9 @@
     <meta name="twitter:title" content="<?php echo e($metaOg['title'] ?? 'Camagru'); ?>">
     <meta name="twitter:image" content="<?php echo e($metaOg['image'] ?? ''); ?>">
     <?php endif; ?>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -53,7 +56,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; <?php echo date('Y'); ?> Camagru. All rights reserved.</p>
+            <p>&copy; <?php echo date('Y'); ?> Camagru &mdash; A 42 School Project</p>
         </div>
     </footer>
     <script>

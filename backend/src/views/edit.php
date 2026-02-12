@@ -1,10 +1,16 @@
 <?php $view = 'edit'; ?>
 
 <div class="edit-container">
-    <h2>Create Your Photo</h2>
-    
     <div class="edit-layout">
         <div class="edit-main">
+            <h2>Create Your Photo</h2>
+
+            <div class="steps-guide">
+                <div class="step" id="step-1"><span class="step-num">1</span> Start camera or upload image</div>
+                <div class="step" id="step-2"><span class="step-num">2</span> Choose an overlay below</div>
+                <div class="step" id="step-3"><span class="step-num">3</span> Click Capture</div>
+            </div>
+
             <div class="camera-section">
                 <div class="video-container">
                     <video id="video" autoplay playsinline></video>
@@ -45,7 +51,7 @@
                 <h3>Choose Overlay</h3>
                 <div class="overlay-list">
                     <?php if (empty($overlays)): ?>
-                        <p>No overlays available. Please add overlay images to /frontend/images/overlays/</p>
+                        <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
                     <?php else: ?>
                         <?php foreach ($overlays as $overlay): ?>
                             <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">

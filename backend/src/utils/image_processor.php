@@ -17,7 +17,7 @@ function processImageWithOverlay($base64Image, $overlayId = null) {
     }
 
     if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
         if (!file_exists($overlayPath)) {
             imagedestroy($sourceImage);
             return ['success' => false, 'error' => 'Overlay not found'];
@@ -94,7 +94,7 @@ function processUploadedImage($uploadedFile, $overlayId = null) {
     }
 
     if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
         if (!file_exists($overlayPath)) {
             imagedestroy($sourceImage);
             return ['success' => false, 'error' => 'Overlay not found'];
@@ -134,7 +134,7 @@ function processUploadedImage($uploadedFile, $overlayId = null) {
 }
 
 function getAvailableOverlays() {
-    $overlayDir = __DIR__ . '/../../../frontend/images/overlays/';
+    $overlayDir = __DIR__ . '/../../public/images/overlays/';
     $overlays = [];
     
     if (is_dir($overlayDir)) {
@@ -158,7 +158,7 @@ function createAnimatedGif(array $base64Frames, $overlayId = null, $delayTicks =
     }
     $overlayBlob = null;
     if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../../frontend/images/overlays/' . $overlayId . '.png';
+        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
         if (!file_exists($overlayPath)) {
             return ['success' => false, 'error' => 'Overlay not found'];
         }
