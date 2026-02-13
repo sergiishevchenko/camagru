@@ -12,6 +12,10 @@ RUN apt-get update && apt-get install -y \
     && pecl install imagick \
     && docker-php-ext-enable imagick
 
+RUN echo "post_max_size = 50M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 RUN a2enmod rewrite
 
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
