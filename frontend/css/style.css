@@ -411,6 +411,7 @@ button[type="submit"]:disabled {
 .edit-header {
     grid-column: 1 / -1;
     padding-right: 264px;
+    padding-top: 24px;
 }
 
 .edit-layout {
