@@ -78,7 +78,7 @@
         if (btn.disabled) return;
         const imageId = btn.dataset.imageId;
         const token = getCSRFToken();
-        if (!token) { alert('CSRF token not found'); return; }
+        if (!token) { window.alertModal('CSRF token not found'); return; }
         const likeCountSpan = btn.querySelector('.like-count');
         btn.disabled = true;
         fetch('/like/' + imageId, {
@@ -92,12 +92,12 @@
                 btn.classList.toggle('liked', data.liked);
                 likeCountSpan.textContent = data.count;
             } else {
-                alert(data.error || 'Failed to toggle like');
+                window.alertModal(data.error || 'Failed to toggle like');
             }
             btn.disabled = false;
         })
         .catch(function() {
-            alert('An error occurred');
+            window.alertModal('An error occurred');
             btn.disabled = false;
         });
     }
@@ -108,7 +108,7 @@
         const content = input.value.trim();
         if (!content) return;
         const token = getCSRFToken();
-        if (!token) { alert('CSRF token not found'); return; }
+        if (!token) { window.alertModal('CSRF token not found'); return; }
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         fetch('/comment/' + imageId, {
@@ -122,12 +122,12 @@
                 input.value = '';
                 loadComments(imageId);
             } else {
-                alert(data.error || 'Failed to post comment');
+                window.alertModal(data.error || 'Failed to post comment');
             }
             submitBtn.disabled = false;
         })
         .catch(function() {
-            alert('An error occurred');
+            window.alertModal('An error occurred');
             submitBtn.disabled = false;
         });
     }
@@ -150,12 +150,12 @@
                     var card = document.getElementById('image-' + imageId);
                     if (card) card.remove();
                 } else {
-                    alert(data.error || 'Failed to delete image');
+                    window.alertModal(data.error || 'Failed to delete image');
                     btn.disabled = false;
                 }
             })
             .catch(function() {
-                alert('An error occurred');
+                window.alertModal('An error occurred');
                 btn.disabled = false;
             });
         });

@@ -68,6 +68,14 @@
             </div>
         </div>
     </div>
+    <div id="alert-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <p id="alert-modal-text"></p>
+            <div class="modal-actions">
+                <button id="alert-modal-ok" class="button modal-btn-ok" type="button">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
     (function() {
         var toggle = document.getElementById('nav-toggle');
@@ -97,6 +105,24 @@
             function onOverlay(e) { if (e.target === overlay) { cleanup(); resolve(false); } }
             okBtn.addEventListener('click', onOk);
             cancelBtn.addEventListener('click', onCancel);
+            overlay.addEventListener('click', onOverlay);
+        });
+    };
+    window.alertModal = function(text) {
+        return new Promise(function(resolve) {
+            var overlay = document.getElementById('alert-modal');
+            var msg = document.getElementById('alert-modal-text');
+            var okBtn = document.getElementById('alert-modal-ok');
+            msg.textContent = text || 'Something went wrong';
+            overlay.style.display = 'flex';
+            function cleanup() {
+                overlay.style.display = 'none';
+                okBtn.removeEventListener('click', onOk);
+                overlay.removeEventListener('click', onOverlay);
+            }
+            function onOk() { cleanup(); resolve(); }
+            function onOverlay(e) { if (e.target === overlay) { cleanup(); resolve(); } }
+            okBtn.addEventListener('click', onOk);
             overlay.addEventListener('click', onOverlay);
         });
     };
