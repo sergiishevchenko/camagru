@@ -25,8 +25,12 @@
                 </div>
                 
                 <div class="upload-section">
-                    <p>Or upload an image:</p>
-                    <input type="file" id="file-input" accept="image/*">
+                    <label class="upload-dropzone" id="upload-dropzone">
+                        <span class="upload-icon">&#8682;</span>
+                        <span class="upload-text">Drop image here or <strong>browse</strong></span>
+                        <span class="upload-hint">JPG, PNG or GIF — max 5 MB</span>
+                        <input type="file" id="file-input" accept="image/*">
+                    </label>
                 </div>
                 
                 <div id="preview-container" style="display: none;">
@@ -36,14 +40,22 @@
                 </div>
 
                 <div class="gif-section">
-                    <h3>Animated GIF</h3>
-                    <p class="gif-hint">Add 2-30 frames, then create GIF.</p>
-                    <div class="gif-controls">
-                        <button id="add-gif-frame" class="button" disabled>Add frame</button>
-                        <button id="create-gif" class="button" disabled>Create GIF</button>
-                        <button id="clear-gif-frames" class="button">Clear</button>
+                    <div class="gif-header">
+                        <span class="gif-badge">GIF</span>
+                        <div>
+                            <h3>Animated GIF</h3>
+                            <p class="gif-hint">Capture 2–30 frames, then create a looping GIF</p>
+                        </div>
                     </div>
-                    <p id="gif-frame-count" class="gif-frame-count">0 frames</p>
+                    <div class="gif-controls">
+                        <button id="add-gif-frame" class="button gif-btn" disabled>+ Add Frame</button>
+                        <button id="create-gif" class="button gif-btn gif-btn-create" disabled>Create GIF</button>
+                        <button id="clear-gif-frames" class="button gif-btn gif-btn-clear">Clear</button>
+                    </div>
+                    <div class="gif-progress">
+                        <div class="gif-progress-bar" id="gif-progress-bar"></div>
+                    </div>
+                    <p id="gif-frame-count" class="gif-frame-count"><span id="gif-count-num">0</span> / 30 frames</p>
                 </div>
             </div>
             

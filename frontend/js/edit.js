@@ -164,9 +164,15 @@
         return canvas.toDataURL('image/png');
     }
 
+    var gifProgressBar = document.getElementById('gif-progress-bar');
+    var gifCountNum = document.getElementById('gif-count-num');
+
     function updateGifUI() {
-        if (gifFrameCountEl) gifFrameCountEl.textContent = gifFrames.length + ' frames';
-        if (createGifBtn) createGifBtn.disabled = gifFrames.length < 2 || gifFrames.length > 30;
+        var count = gifFrames.length;
+        if (gifCountNum) gifCountNum.textContent = count;
+        if (gifFrameCountEl && !gifCountNum) gifFrameCountEl.textContent = count + ' / 30 frames';
+        if (createGifBtn) createGifBtn.disabled = count < 2 || count > 30;
+        if (gifProgressBar) gifProgressBar.style.width = Math.min(100, (count / 30) * 100) + '%';
     }
 
     if (addGifFrameBtn) {
@@ -302,6 +308,29 @@
         const imageData = canvas.toDataURL('image/png');
         sendImage(imageData);
     });
+
+    var dropzone = document.getElementById('upload-dropzone');
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(function(evt) {
+            dropzone.addEventListener(evt, function(e) {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function(evt) {
+            dropzone.addEventListener(evt, function(e) {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+            });
+        });
+        dropzone.addEventListener('drop', function(e) {
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+    }
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];

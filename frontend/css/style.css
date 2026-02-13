@@ -562,20 +562,52 @@ button[type="submit"]:disabled {
 .upload-section {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 2px dashed var(--border);
+    border-top: 1px solid var(--border-light);
 }
 
-.upload-section p {
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
+.upload-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 28px 20px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg);
+    text-align: center;
 }
 
-.upload-section input[type="file"] {
-    font-family: var(--font);
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+    border-color: var(--primary);
+    background: rgba(108,92,231,0.04);
+}
+
+.upload-dropzone input[type="file"] {
+    display: none;
+}
+
+.upload-icon {
+    font-size: 32px;
+    color: var(--primary-light);
+    line-height: 1;
+}
+
+.upload-text {
     font-size: 14px;
     color: var(--text-secondary);
+}
+
+.upload-text strong {
+    color: var(--primary);
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
 #preview-container {
@@ -665,37 +697,104 @@ button[type="submit"]:disabled {
 
 .gif-section {
     margin-top: 24px;
-    padding-top: 24px;
-    border-top: 2px dashed var(--border);
+    padding: 20px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+}
+
+.gif-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.gif-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--gradient);
+    color: var(--surface);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .gif-section h3 {
-    margin-bottom: 8px;
-    font-size: 16px;
+    margin-bottom: 2px;
+    font-size: 15px;
     font-weight: 700;
 }
 
 .gif-hint {
     font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 14px;
+    color: var(--text-muted);
 }
 
 .gif-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 14px;
 }
 
-.gif-controls .button {
-    margin: 0;
+.gif-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 20px;
+}
+
+.gif-btn-create {
+    background: var(--accent);
+}
+
+.gif-btn-create:hover {
+    background: var(--accent-dark);
+}
+
+.gif-btn-clear {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.gif-btn-clear:hover {
+    background: var(--bg);
+    color: var(--text-secondary);
+    box-shadow: none;
+    transform: none;
+}
+
+.gif-progress {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.gif-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--gradient);
+    border-radius: 3px;
+    transition: width 0.3s ease;
 }
 
 .gif-frame-count {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.gif-frame-count #gif-count-num {
+    font-weight: 700;
+    color: var(--primary);
 }
 
 .message {
