@@ -1,47 +1,68 @@
 <?php
 
+function flattenToOpaque($srcImage) {
+    $w = imagesx($srcImage);
+    $h = imagesy($srcImage);
+    $flat = imagecreatetruecolor($w, $h);
+    $white = imagecolorallocate($flat, 255, 255, 255);
+    imagefill($flat, 0, 0, $white);
+    imagealphablending($flat, true);
+    imagecopy($flat, $srcImage, 0, 0, 0, 0, $w, $h);
+    imagedestroy($srcImage);
+    return $flat;
+}
+
+function applyOverlay($sourceImage, $overlayId) {
+    if (empty($overlayId)) return $sourceImage;
+
+    $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
+    if (!file_exists($overlayPath)) return $sourceImage;
+
+    $overlayImage = imagecreatefrompng($overlayPath);
+    if ($overlayImage === false) return $sourceImage;
+
+    $sw = imagesx($sourceImage);
+    $sh = imagesy($sourceImage);
+    $ow = imagesx($overlayImage);
+    $oh = imagesy($overlayImage);
+
+    $resized = imagecreatetruecolor($sw, $sh);
+    imagesavealpha($resized, true);
+    $trans = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+    imagefill($resized, 0, 0, $trans);
+    imagecopyresampled($resized, $overlayImage, 0, 0, 0, 0, $sw, $sh, $ow, $oh);
+    imagedestroy($overlayImage);
+
+    imagealphablending($sourceImage, true);
+    imagecopy($sourceImage, $resized, 0, 0, 0, 0, $sw, $sh);
+    imagedestroy($resized);
+
+    return $sourceImage;
+}
+
 function processImageWithOverlay($base64Image, $overlayId = null) {
     $uploadDir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
 
-    $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-    if ($imageData === false) {
-        return ['success' => false, 'error' => 'Invalid image data'];
+    if (empty($base64Image)) {
+        return ['success' => false, 'error' => 'Empty image data received'];
     }
 
-    $sourceImage = imagecreatefromstring($imageData);
+    $stripped = preg_replace('#^data:image/[a-zA-Z0-9+.-]+;base64,#i', '', $base64Image);
+    $imageData = base64_decode($stripped, true);
+    if ($imageData === false || strlen($imageData) < 8) {
+        return ['success' => false, 'error' => 'Invalid base64 image data (len=' . strlen($base64Image) . ')'];
+    }
+
+    $sourceImage = @imagecreatefromstring($imageData);
     if ($sourceImage === false) {
-        return ['success' => false, 'error' => 'Failed to create image from data'];
+        return ['success' => false, 'error' => 'Unsupported image format (decoded=' . strlen($imageData) . ' bytes, header=' . bin2hex(substr($imageData, 0, 4)) . ')'];
     }
 
-    if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
-        if (!file_exists($overlayPath)) {
-            imagedestroy($sourceImage);
-            return ['success' => false, 'error' => 'Overlay not found'];
-        }
-
-        $overlayImage = imagecreatefrompng($overlayPath);
-        if ($overlayImage === false) {
-            imagedestroy($sourceImage);
-            return ['success' => false, 'error' => 'Failed to load overlay'];
-        }
-
-        $sourceWidth = imagesx($sourceImage);
-        $sourceHeight = imagesy($sourceImage);
-        $overlayWidth = imagesx($overlayImage);
-        $overlayHeight = imagesy($overlayImage);
-
-        $x = ($sourceWidth - $overlayWidth) / 2;
-        $y = ($sourceHeight - $overlayHeight) / 2;
-
-        imagealphablending($sourceImage, true);
-        imagesavealpha($sourceImage, true);
-        imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
-        imagedestroy($overlayImage);
-    }
+    $sourceImage = flattenToOpaque($sourceImage);
+    $sourceImage = applyOverlay($sourceImage, $overlayId);
 
     $filename = uniqid('img_', true) . '.png';
     $filepath = $uploadDir . $filename;
@@ -93,32 +114,8 @@ function processUploadedImage($uploadedFile, $overlayId = null) {
         return ['success' => false, 'error' => 'Failed to create image from file'];
     }
 
-    if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
-        if (!file_exists($overlayPath)) {
-            imagedestroy($sourceImage);
-            return ['success' => false, 'error' => 'Overlay not found'];
-        }
-
-        $overlayImage = imagecreatefrompng($overlayPath);
-        if ($overlayImage === false) {
-            imagedestroy($sourceImage);
-            return ['success' => false, 'error' => 'Failed to load overlay'];
-        }
-
-        $sourceWidth = imagesx($sourceImage);
-        $sourceHeight = imagesy($sourceImage);
-        $overlayWidth = imagesx($overlayImage);
-        $overlayHeight = imagesy($overlayImage);
-
-        $x = ($sourceWidth - $overlayWidth) / 2;
-        $y = ($sourceHeight - $overlayHeight) / 2;
-
-        imagealphablending($sourceImage, true);
-        imagesavealpha($sourceImage, true);
-        imagecopy($sourceImage, $overlayImage, (int)$x, (int)$y, 0, 0, $overlayWidth, $overlayHeight);
-        imagedestroy($overlayImage);
-    }
+    $sourceImage = flattenToOpaque($sourceImage);
+    $sourceImage = applyOverlay($sourceImage, $overlayId);
 
     $filename = uniqid('img_', true) . '.png';
     $filepath = $uploadDir . $filename;

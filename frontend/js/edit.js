@@ -49,11 +49,11 @@
 
     function showMessage(text, isError = false) {
         messageDiv.textContent = text;
-        messageDiv.className = isError ? 'message error' : 'message success';
+        messageDiv.className = isError ? 'message-toast error' : 'message-toast success';
         messageDiv.style.display = 'block';
         setTimeout(() => {
             messageDiv.style.display = 'none';
-        }, 5000);
+        }, 4000);
     }
 
     function getCSRFToken() {
@@ -76,39 +76,43 @@
             previewAnimationId = requestAnimationFrame(drawLivePreview);
             return;
         }
-        const source = getPreviewSource();
-        if (!source) {
+        if (!stream || video.readyState < 2) {
             previewCanvas.style.display = 'none';
             previewAnimationId = requestAnimationFrame(drawLivePreview);
             return;
         }
-        let w, h;
-        if (source === video) {
-            w = video.videoWidth;
-            h = video.videoHeight;
-        } else if (capturedImageObj && capturedImageObj.complete && capturedImageObj.naturalWidth) {
-            w = capturedImageObj.naturalWidth;
-            h = capturedImageObj.naturalHeight;
-        } else {
-            previewAnimationId = requestAnimationFrame(drawLivePreview);
-            return;
-        }
+        var w = video.videoWidth;
+        var h = video.videoHeight;
         if (previewCanvas.width !== w || previewCanvas.height !== h) {
             previewCanvas.width = w;
             previewCanvas.height = h;
         }
-        const ctx = previewCanvas.getContext('2d');
-        if (source === video) {
-            ctx.drawImage(video, 0, 0);
-        } else {
-            ctx.drawImage(capturedImageObj, 0, 0);
-        }
+        var ctx = previewCanvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
         ctx.drawImage(overlayImage, 0, 0, w, h);
         previewCanvas.style.display = 'block';
         previewAnimationId = requestAnimationFrame(drawLivePreview);
     }
 
+    function updateUploadPreview() {
+        if (!capturedImageObj || !capturedImageObj.complete || !capturedImageObj.naturalWidth) return;
+        var w = capturedImageObj.naturalWidth;
+        var h = capturedImageObj.naturalHeight;
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(capturedImageObj, 0, 0);
+        if (overlayImage && overlayImage.complete && overlayImage.naturalWidth) {
+            ctx.drawImage(overlayImage, 0, 0, w, h);
+        }
+        preview.src = canvas.toDataURL('image/png');
+    }
+
     function startLivePreview() {
+        if (capturedImage && capturedImageObj) {
+            updateUploadPreview();
+            return;
+        }
         if (!previewAnimationId) {
             previewAnimationId = requestAnimationFrame(drawLivePreview);
         }
@@ -128,6 +132,9 @@
         if (!name) {
             overlayImage = null;
             stopLivePreview();
+            if (capturedImage) {
+                preview.src = capturedImage;
+            }
             return;
         }
         const img = new Image();
@@ -341,11 +348,14 @@
             capturedImage = event.target.result;
             capturedImageObj = new Image();
             capturedImageObj.onload = function() {
-                preview.src = capturedImage;
                 previewContainer.style.display = 'block';
                 captureBtn.disabled = !selectedOverlay;
                 if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
-                if (selectedOverlay && overlayImage) startLivePreview();
+                if (selectedOverlay && overlayImage) {
+                    updateUploadPreview();
+                } else {
+                    preview.src = capturedImage;
+                }
             };
             capturedImageObj.src = capturedImage;
             updateSteps();
@@ -358,7 +368,9 @@
             showMessage('Please select an overlay first', true);
             return;
         }
-        if (capturedImage) {
+        if (fileInput.files && fileInput.files[0]) {
+            sendUploadedFile(fileInput.files[0]);
+        } else if (capturedImage) {
             sendImage(capturedImage);
         }
     });
@@ -368,7 +380,7 @@
         fileInput.value = '';
         capturedImage = null;
         capturedImageObj = null;
-        if (!stream) stopLivePreview();
+        stopLivePreview();
         updateSteps();
     });
 
@@ -421,6 +433,51 @@
         });
     });
 
+    function sendUploadedFile(file) {
+        const token = getCSRFToken();
+        if (!token) {
+            showMessage('CSRF token not found', true);
+            return;
+        }
+
+        captureBtn.disabled = true;
+        if (usePreviewBtn) usePreviewBtn.disabled = true;
+        showMessage('Processing image...', false);
+
+        var formData = new FormData();
+        formData.append('image', file);
+        formData.append('overlay_id', selectedOverlay || '');
+        formData.append('csrf_token', token);
+
+        fetch('/edit/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    try { return JSON.parse(text); } catch(e) { throw new Error('Server error (' + response.status + ')'); }
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                showMessage('Image created!', false);
+                setTimeout(function() { window.location.href = '/'; }, 1500);
+            } else {
+                showMessage(data.error || 'Failed to create image', true);
+                captureBtn.disabled = false;
+                if (usePreviewBtn) usePreviewBtn.disabled = false;
+            }
+        })
+        .catch(function(error) {
+            showMessage('Error: ' + error.message, true);
+            captureBtn.disabled = false;
+            if (usePreviewBtn) usePreviewBtn.disabled = false;
+        });
+    }
+
     function sendImage(imageData) {
         const token = getCSRFToken();
         if (!token) {
@@ -442,19 +499,24 @@
                 csrf_token: token
             })
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    try { return JSON.parse(text); } catch(e) { throw new Error('Server error (' + response.status + ')'); }
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
             if (data.success) {
-                showMessage('Image created successfully!', false);
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1500);
+                showMessage('Image created!', false);
+                setTimeout(function() { window.location.href = '/'; }, 1500);
             } else {
                 showMessage(data.error || 'Failed to create image', true);
                 captureBtn.disabled = false;
             }
         })
-        .catch(error => {
+        .catch(function(error) {
             showMessage('Error: ' + error.message, true);
             captureBtn.disabled = false;
         });

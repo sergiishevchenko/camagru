@@ -33,10 +33,14 @@
                     </label>
                 </div>
                 
-                <div id="preview-container" style="display: none;">
-                    <img id="preview" alt="Preview">
-                    <button id="use-preview" class="button">Use This Image</button>
-                    <button id="cancel-preview" class="button">Cancel</button>
+                <div id="preview-container" class="preview-container" style="display: none;">
+                    <div class="preview-image">
+                        <img id="preview" alt="Preview">
+                    </div>
+                    <div class="preview-actions">
+                        <button id="use-preview" class="button">Use This Image</button>
+                        <button id="cancel-preview" class="button preview-cancel">Cancel</button>
+                    </div>
                 </div>
 
                 <div class="gif-section">
@@ -60,20 +64,27 @@
             </div>
             
             <div class="overlay-section">
-                <h3>Choose Overlay</h3>
+                <div class="overlay-header">
+                    <div>
+                        <h3>Choose Overlay</h3>
+                        <p class="overlay-hint">Select an effect to apply on your photo</p>
+                    </div>
+                    <span id="overlay-selected" class="overlay-tag" style="display: none;">&#10003; <span id="selected-overlay-name"></span></span>
+                </div>
                 <div class="overlay-list">
                     <?php if (empty($overlays)): ?>
                         <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
                     <?php else: ?>
                         <?php foreach ($overlays as $overlay): ?>
                             <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
-                                <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
+                                <div class="overlay-preview">
+                                    <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
+                                </div>
                                 <span><?php echo e($overlay); ?></span>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
-                <p id="overlay-selected" class="overlay-selected" style="display: none;">Selected: <span id="selected-overlay-name"></span></p>
             </div>
         </div>
 
@@ -96,7 +107,7 @@
         </div>
     </div>
     
-    <div id="message" class="message" style="display: none;"></div>
+    <div id="message" class="message-toast" style="display: none;"></div>
 </div>
 
 <script src="/js/edit.js"></script>

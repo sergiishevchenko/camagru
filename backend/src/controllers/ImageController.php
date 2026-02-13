@@ -42,11 +42,18 @@ class ImageController {
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw, true);
 
-        if (!isset($data['image'])) {
+        if ($data === null) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+            echo json_encode(['success' => false, 'error' => 'Invalid JSON (received ' . strlen($raw) . ' bytes)']);
+            return;
+        }
+
+        if (!isset($data['image']) || empty($data['image'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Missing image data']);
             return;
         }
 
