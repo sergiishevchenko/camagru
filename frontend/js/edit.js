@@ -521,4 +521,25 @@
             captureBtn.disabled = false;
         });
     }
+    var camSection = document.querySelector('.camera-section');
+    var thumbsEl = document.querySelector('.edit-thumbnails');
+    var sidebarH3 = document.querySelector('.edit-sidebar h3');
+
+    function fitSidebar() {
+        if (!camSection || !thumbsEl || window.innerWidth < 768) {
+            if (thumbsEl) thumbsEl.style.maxHeight = '';
+            return;
+        }
+        var camH = camSection.offsetHeight;
+        var h3H = sidebarH3 ? sidebarH3.offsetHeight + 16 : 0;
+        var thumbsMax = camH - h3H - 40;
+        thumbsEl.style.maxHeight = Math.max(200, thumbsMax) + 'px';
+    }
+
+    if (document.readyState === 'complete') {
+        fitSidebar();
+    } else {
+        window.addEventListener('load', fitSidebar);
+    }
+    window.addEventListener('resize', fitSidebar);
 })();

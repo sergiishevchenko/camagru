@@ -412,6 +412,7 @@ button[type="submit"]:disabled {
     grid-column: 1 / -1;
     padding-right: 264px;
     padding-top: 24px;
+    align-self: start;
 }
 
 .edit-layout {
@@ -435,8 +436,6 @@ button[type="submit"]:disabled {
     padding: 20px;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    max-height: 80vh;
-    overflow-y: auto;
     border: 1px solid var(--border-light);
 }
 
@@ -453,6 +452,7 @@ button[type="submit"]:disabled {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
 }
 
 .edit-thumb {
@@ -461,6 +461,7 @@ button[type="submit"]:disabled {
     overflow: hidden;
     border: 2px solid var(--border-light);
     transition: all var(--transition);
+    flex-shrink: 0;
 }
 
 .edit-thumb:hover {
@@ -1574,7 +1575,8 @@ button[type="submit"]:disabled {
     }
 
     .edit-sidebar {
-        max-height: none;
+        max-height: 400px;
+        overflow: hidden;
     }
 
     .edit-sidebar h3 {
