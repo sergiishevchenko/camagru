@@ -40,6 +40,9 @@
                             <div class="share-buttons">
                                 <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-fb" title="Share on Facebook">f</a>
                                 <a href="https://twitter.com/intent/tweet?url=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>&text=<?php echo e(rawurlencode('Camagru photo by @' . $image['username'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-tw" title="Share on Twitter">𝕏</a>
+                                <a href="https://pinterest.com/pin/create/button/?url=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>&media=<?php echo e(rawurlencode($baseUrl . '/uploads/' . $image['filename'])); ?>&description=<?php echo e(rawurlencode('Camagru photo by @' . $image['username'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-pin" title="Share on Pinterest">P</a>
+                                <a href="https://api.whatsapp.com/send?text=<?php echo e(rawurlencode('Camagru photo by @' . $image['username'] . ' ' . $baseUrl . '/image/' . $image['id'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-wa" title="Share on WhatsApp">W</a>
+                                <a href="https://t.me/share/url?url=<?php echo e(rawurlencode($baseUrl . '/image/' . $image['id'])); ?>&text=<?php echo e(rawurlencode('Camagru photo by @' . $image['username'])); ?>" target="_blank" rel="noopener noreferrer" class="share-btn share-tg" title="Share on Telegram">T</a>
                             </div>
                         </div>
                         <div class="comments-section">

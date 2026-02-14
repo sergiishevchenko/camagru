@@ -465,6 +465,7 @@ button[type="submit"]:disabled {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-align: center;
 }
 
 .edit-thumbnails {
@@ -712,8 +713,8 @@ button[type="submit"]:disabled {
 
 .overlay-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
 }
 
 .overlay-item {
@@ -758,8 +759,8 @@ button[type="submit"]:disabled {
 }
 
 .overlay-item span {
-    padding: 8px 6px;
-    font-size: 12px;
+    padding: 6px 4px;
+    font-size: 11px;
     text-align: center;
     word-break: break-word;
     color: var(--text);
@@ -1066,6 +1067,19 @@ button[type="submit"]:disabled {
     background: #000;
 }
 
+.share-pin {
+    background: #E60023;
+}
+
+.share-wa {
+    background: #25D366;
+    color: #fff;
+}
+
+.share-tg {
+    background: #0088cc;
+}
+
 .load-more-sentinel {
     height: 1px;
     visibility: hidden;
@@ -1082,6 +1096,7 @@ button[type="submit"]:disabled {
 .image-view-container {
     max-width: 900px;
     margin: 0 auto;
+    padding-top: 32px;
 }
 
 .image-view-card {
@@ -1672,7 +1687,7 @@ button[type="submit"]:disabled {
     }
 
     .overlay-list {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: 8px;
         justify-content: center;
     }
