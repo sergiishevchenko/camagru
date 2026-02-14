@@ -15,7 +15,7 @@ class GalleryController {
 
     public function index() {
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = 5;
+        $perPage = 9;
 
         $images = $this->imageModel->getAll($page, $perPage);
         $totalImages = $this->imageModel->getTotalCount();
@@ -47,7 +47,7 @@ class GalleryController {
             'totalPages' => $totalPages,
             'hasNextPage' => $page < $totalPages,
             'hasPrevPage' => $page > 1,
-            'infiniteScroll' => true
+            'infiniteScroll' => false
         ]);
     }
 
