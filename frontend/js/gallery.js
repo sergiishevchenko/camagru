@@ -194,13 +194,16 @@
         var baseUrl = container.getAttribute('data-base-url') || (window.location.origin + '');
         var isAuthenticated = container.getAttribute('data-authenticated') === '1';
         var grid = container.querySelector('.gallery-grid');
+        var currentPageEl = document.getElementById('current-page');
+        var currentPageNum = 1;
 
         function loadMore() {
             if (loading || !nextPage) return;
             loading = true;
             if (statusEl) {
                 statusEl.style.display = 'block';
-                statusEl.textContent = 'Loading...';
+                statusEl.textContent = 'Loading more photos...';
+                statusEl.className = 'load-more-status loading';
             }
             fetch('/?page=' + nextPage + '&format=json')
                 .then(function(r) { return r.json(); })
@@ -211,18 +214,27 @@
                             grid.insertAdjacentHTML('beforeend', html);
                             loadComments(img.id);
                         });
+                        currentPageNum = nextPage;
+                        if (currentPageEl) currentPageEl.textContent = currentPageNum;
                     }
                     nextPage = data.nextPage || 0;
                     container.setAttribute('data-next-page', nextPage || '');
                     if (statusEl) {
-                        statusEl.textContent = nextPage ? '' : 'No more photos';
-                        if (!nextPage) statusEl.style.display = 'block';
+                        if (nextPage) {
+                            statusEl.textContent = 'Scroll down for more';
+                            statusEl.className = 'load-more-status';
+                        } else {
+                            statusEl.textContent = 'You\'ve reached the end';
+                            statusEl.className = 'load-more-status end';
+                            statusEl.style.display = 'block';
+                        }
                     }
                     loading = false;
                 })
                 .catch(function() {
                     if (statusEl) {
                         statusEl.textContent = 'Failed to load more';
+                        statusEl.className = 'load-more-status';
                         statusEl.style.display = 'block';
                     }
                     loading = false;

@@ -59,9 +59,10 @@
             <?php endforeach; ?>
         </div>
         
+        <div class="gallery-page-info">Page <span id="current-page">1</span> of <span id="total-pages"><?php echo $totalPages; ?></span></div>
         <?php if (isset($infiniteScroll) && $infiniteScroll && $hasNextPage): ?>
             <div id="load-more-sentinel" class="load-more-sentinel"></div>
-            <div id="load-more-status" class="load-more-status" style="display: none;"></div>
+            <div id="load-more-status" class="load-more-status">Scroll down for more</div>
         <?php elseif (isset($totalPages) && $totalPages > 1): ?>
             <div class="pagination">
                 <?php if ($hasPrevPage): ?>

@@ -47,7 +47,7 @@ class GalleryController {
             'totalPages' => $totalPages,
             'hasNextPage' => $page < $totalPages,
             'hasPrevPage' => $page > 1,
-            'infiniteScroll' => false
+            'infiniteScroll' => true
         ]);
     }
 

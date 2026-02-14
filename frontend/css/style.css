@@ -1087,17 +1087,44 @@ button[type="submit"]:disabled {
     background: #0088cc;
 }
 
+.gallery-page-info {
+    text-align: center;
+    padding: 16px 0 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
 .load-more-sentinel {
     height: 1px;
     visibility: hidden;
-    margin: 20px 0;
 }
 
 .load-more-status {
     text-align: center;
-    padding: 20px;
+    padding: 16px 20px;
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+}
+
+.load-more-status.loading {
+    color: var(--primary);
+}
+
+.load-more-status.loading::before {
+    content: '↻ ';
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+.load-more-status.end {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .image-view-container {
