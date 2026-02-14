@@ -48,16 +48,20 @@
         const likedClass = image.is_liked ? ' liked' : '';
         const disabledAttr = isAuthenticated ? '' : ' disabled';
         const deleteBtn = image.is_owner ? '<button class="delete-image" data-image-id="' + image.id + '">×</button>' : '';
+        const imageMediaUrl = baseUrl + '/uploads/' + image.filename;
         const shareBtns = '<div class="share-buttons">' +
             '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-fb" title="Share on Facebook">f</a>' +
             '<a href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent('Camagru photo by @' + image.username) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-tw" title="Share on Twitter">𝕏</a>' +
+            '<a href="https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(shareUrl) + '&media=' + encodeURIComponent(imageMediaUrl) + '&description=' + encodeURIComponent('Camagru photo by @' + image.username) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-pin" title="Share on Pinterest">P</a>' +
+            '<a href="https://api.whatsapp.com/send?text=' + encodeURIComponent('Camagru photo by @' + image.username + ' ' + shareUrl) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-wa" title="Share on WhatsApp">W</a>' +
+            '<a href="https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent('Camagru photo by @' + image.username) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-tg" title="Share on Telegram">T</a>' +
             '</div>';
         const commentForm = isAuthenticated ? '<form class="comment-form" data-image-id="' + image.id + '">' +
             '<input type="text" name="comment" placeholder="Add a comment..." required> ' +
             '<button type="submit">Post</button></form>' : '';
         return '<div class="image-card" id="image-' + image.id + '">' +
             '<div class="image-wrapper">' +
-            '<img src="/uploads/' + escapedFilename + '" alt="Photo by ' + escapedUsername + '">' + deleteBtn +
+            '<a href="/image/' + image.id + '"><img src="/uploads/' + escapedFilename + '" alt="Photo by ' + escapedUsername + '"></a>' + deleteBtn +
             '</div>' +
             '<div class="image-info">' +
             '<div class="image-meta">' +
