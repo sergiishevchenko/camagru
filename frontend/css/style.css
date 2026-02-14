@@ -437,7 +437,7 @@ button[type="submit"]:disabled {
 .edit-layout {
     display: grid;
     grid-template-columns: 1fr 240px;
-    align-items: start;
+    align-items: stretch;
     gap: 24px;
     max-width: 1200px;
     margin: 0 auto;
@@ -456,6 +456,11 @@ button[type="submit"]:disabled {
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     border: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 0;
+    min-height: 100%;
 }
 
 .edit-sidebar h3 {
@@ -472,6 +477,8 @@ button[type="submit"]:disabled {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -671,7 +678,6 @@ button[type="submit"]:disabled {
 }
 
 .overlay-section {
-    grid-column: 1 / -1;
     background: var(--surface);
     padding: 24px;
     border-radius: var(--radius);

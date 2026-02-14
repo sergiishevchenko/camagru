@@ -63,6 +63,29 @@
                 </div>
             </div>
             
+            <div class="overlay-section">
+                <div class="overlay-header">
+                    <div>
+                        <h3>Choose Overlay</h3>
+                        <p class="overlay-hint">Select an effect to apply on your photo</p>
+                    </div>
+                    <span id="overlay-selected" class="overlay-tag" style="display: none;">&#10003; <span id="selected-overlay-name"></span></span>
+                </div>
+                <div class="overlay-list">
+                    <?php if (empty($overlays)): ?>
+                        <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
+                    <?php else: ?>
+                        <?php foreach ($overlays as $overlay): ?>
+                            <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
+                                <div class="overlay-preview">
+                                    <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
+                                </div>
+                                <span><?php echo e($overlay); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <div class="edit-sidebar">
@@ -81,30 +104,6 @@
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-        </div>
-
-        <div class="overlay-section">
-            <div class="overlay-header">
-                <div>
-                    <h3>Choose Overlay</h3>
-                    <p class="overlay-hint">Select an effect to apply on your photo</p>
-                </div>
-                <span id="overlay-selected" class="overlay-tag" style="display: none;">&#10003; <span id="selected-overlay-name"></span></span>
-            </div>
-            <div class="overlay-list">
-                <?php if (empty($overlays)): ?>
-                    <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
-                <?php else: ?>
-                    <?php foreach ($overlays as $overlay): ?>
-                        <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
-                            <div class="overlay-preview">
-                                <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
-                            </div>
-                            <span><?php echo e($overlay); ?></span>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
         </div>
     </div>
     
