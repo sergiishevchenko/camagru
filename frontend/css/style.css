@@ -1714,8 +1714,10 @@ button[type="submit"]:disabled {
     }
 
     .edit-sidebar {
-        max-height: 400px;
-        overflow: hidden;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        overflow: visible;
     }
 
     .edit-sidebar h3 {
@@ -1726,6 +1728,8 @@ button[type="submit"]:disabled {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
+        overflow-y: visible;
+        flex: none;
     }
 
     .edit-thumb {
