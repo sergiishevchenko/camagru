@@ -18,7 +18,9 @@
             <?php foreach ($images as $image): ?>
                 <div class="image-card" id="image-<?php echo $image['id']; ?>">
                     <div class="image-wrapper">
-                        <img src="/uploads/<?php echo e($image['filename']); ?>" alt="Photo by <?php echo e($image['username']); ?>">
+                        <a href="/image/<?php echo $image['id']; ?>">
+                            <img src="/uploads/<?php echo e($image['filename']); ?>" alt="Photo by <?php echo e($image['username']); ?>">
+                        </a>
                         <?php if (isset($image['is_owner']) && $image['is_owner']): ?>
                             <button class="delete-image" data-image-id="<?php echo $image['id']; ?>">×</button>
                         <?php endif; ?>
