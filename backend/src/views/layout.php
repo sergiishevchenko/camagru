@@ -84,6 +84,13 @@
         if (toggle && nav) {
             toggle.addEventListener('click', function() {
                 nav.classList.toggle('is-open');
+                toggle.classList.toggle('is-open');
+            });
+            nav.querySelectorAll('a').forEach(function(a) {
+                a.addEventListener('click', function() {
+                    nav.classList.remove('is-open');
+                    toggle.classList.remove('is-open');
+                });
             });
         }
     })();
