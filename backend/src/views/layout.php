@@ -57,7 +57,8 @@
 
     <footer>
         <div class="container">
-            <p>&copy; <?php echo date('Y'); ?> Camagru &mdash; A 42 School Project</p>
+            <span class="footer-logo">Camagru</span>
+            <p>&copy; <?php echo date('Y'); ?> &mdash; A 42 School Project</p>
         </div>
     </footer>
     <div id="confirm-modal" class="modal-overlay" style="display:none;">
