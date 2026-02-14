@@ -30,6 +30,7 @@
                 <span></span>
             </button>
             <nav>
+                <a href="/">Gallery</a>
                 <?php if (isAuthenticated()): ?>
                     <a href="/edit">+ New Photo</a>
                     <a href="/profile">Profile</a>
