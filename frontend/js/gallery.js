@@ -36,7 +36,7 @@
                     }
                 }
             })
-            .catch(function(e) { console.error('Error loading comments:', e); });
+            .catch(function() {});
     }
 
     function buildImageCard(image, baseUrl, isAuthenticated) {

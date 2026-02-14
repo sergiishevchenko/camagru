@@ -16,7 +16,7 @@
         
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" required autofocus>
+            <input type="email" id="email" name="email" required autofocus autocomplete="email">
         </div>
 
         <button type="submit">Send Reset Link</button>

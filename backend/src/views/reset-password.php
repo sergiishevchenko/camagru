@@ -29,13 +29,13 @@
             <div class="form-group">
                 <label for="password">New Password</label>
                 <input type="password" id="password" name="password" required 
-                       minlength="8" 
+                       autocomplete="new-password" minlength="8" 
                        title="At least 8 characters with letters and numbers">
             </div>
 
             <div class="form-group">
                 <label for="confirm_password">Confirm New Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
             </div>
 
             <button type="submit">Reset Password</button>

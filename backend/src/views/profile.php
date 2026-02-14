@@ -30,26 +30,26 @@
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username"
                        value="<?php echo e($user['username']); ?>"
-                       pattern="[a-zA-Z0-9_]+" minlength="3" maxlength="50"
+                       autocomplete="username" pattern="[a-zA-Z0-9_]+" minlength="3" maxlength="50"
                        title="3-50 characters, letters, numbers, and underscores only">
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email"
-                       value="<?php echo e($user['email']); ?>">
+                       autocomplete="email" value="<?php echo e($user['email']); ?>">
             </div>
 
             <div class="form-group">
                 <label for="current_password">Current Password</label>
                 <input type="password" id="current_password" name="current_password"
-                       placeholder="Required only when changing password">
+                       autocomplete="current-password" placeholder="Required only when changing password">
             </div>
 
             <div class="form-group">
                 <label for="new_password">New Password</label>
                 <input type="password" id="new_password" name="new_password"
-                       minlength="8"
+                       autocomplete="new-password" minlength="8"
                        placeholder="Leave empty to keep current"
                        title="At least 8 characters with letters and numbers">
             </div>
@@ -57,7 +57,7 @@
             <div class="form-group">
                 <label for="confirm_password">Confirm New Password</label>
                 <input type="password" id="confirm_password" name="confirm_password"
-                       placeholder="Repeat new password">
+                       autocomplete="new-password" placeholder="Repeat new password">
             </div>
 
             <div class="form-group profile-option">
