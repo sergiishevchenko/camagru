@@ -59,6 +59,14 @@ class GalleryController {
             echo '404 - Image not found';
             return;
         }
+
+        require_once __DIR__ . '/../models/Like.php';
+        require_once __DIR__ . '/../models/Comment.php';
+        $likeModel = new Like();
+        $commentModel = new Comment();
+        $likeCount = $likeModel->getCount($id);
+        $comments = $commentModel->getByImageId($id);
+
         $baseUrl = getBaseUrl();
         $imageUrl = $baseUrl . '/uploads/' . $image['filename'];
         $pageUrl = $baseUrl . '/image/' . $id;
@@ -67,6 +75,9 @@ class GalleryController {
             'title' => $title,
             'image' => $image,
             'imageUrl' => $imageUrl,
+            'likeCount' => $likeCount,
+            'comments' => $comments,
+            'pageUrl' => $pageUrl,
             'metaOg' => [
                 'title' => $title,
                 'image' => $imageUrl,
