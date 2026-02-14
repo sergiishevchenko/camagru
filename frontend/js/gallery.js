@@ -209,6 +209,10 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.images && data.images.length) {
+                        var totalPages = document.getElementById('total-pages');
+                        var tp = totalPages ? totalPages.textContent : '?';
+                        grid.insertAdjacentHTML('beforeend',
+                            '<div class="page-divider" style="grid-column:1/-1"><span>Page ' + nextPage + ' of ' + tp + '</span></div>');
                         data.images.forEach(function(img) {
                             var html = buildImageCard(img, baseUrl, isAuthenticated);
                             grid.insertAdjacentHTML('beforeend', html);

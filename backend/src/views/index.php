@@ -15,6 +15,7 @@
         </div>
     <?php else: ?>
         <div class="gallery-grid">
+            <div class="page-divider" style="grid-column:1/-1"><span>Page 1 of <?php echo $totalPages; ?></span></div>
             <?php foreach ($images as $image): ?>
                 <div class="image-card" id="image-<?php echo $image['id']; ?>">
                     <div class="image-wrapper">
@@ -59,7 +60,7 @@
             <?php endforeach; ?>
         </div>
         
-        <div class="gallery-page-info">Page <span id="current-page">1</span> of <span id="total-pages"><?php echo $totalPages; ?></span></div>
+        <span id="total-pages" style="display:none"><?php echo $totalPages; ?></span>
         <?php if (isset($infiniteScroll) && $infiniteScroll && $hasNextPage): ?>
             <div id="load-more-sentinel" class="load-more-sentinel"></div>
             <div id="load-more-status" class="load-more-status">Scroll down for more</div>

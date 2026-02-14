@@ -405,6 +405,7 @@ button[type="submit"]:disabled {
 
 .gallery-container h2 {
     margin-bottom: 28px;
+    padding-top: 24px;
     text-align: center;
     font-size: 28px;
     font-weight: 700;
@@ -1093,6 +1094,30 @@ button[type="submit"]:disabled {
     font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
+}
+
+.page-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.page-divider::before,
+.page-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+}
+
+.page-divider span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .load-more-sentinel {
