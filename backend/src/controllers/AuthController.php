@@ -68,19 +68,22 @@ class AuthController {
             return;
         }
 
-        $username = trim($post['username'] ?? '');
+        $identifier = trim($post['username'] ?? '');
         $password = $post['password'] ?? '';
 
-        if (empty($username) || empty($password)) {
+        if (empty($identifier) || empty($password)) {
             if ($this->isAjaxRequest()) {
-                $this->jsonResponse(false, ['error' => 'Username and password are required']);
+                $this->jsonResponse(false, ['error' => 'Username or email and password are required']);
                 return;
             }
-            $this->renderView('login', ['title' => 'Login', 'error' => 'Username and password are required']);
+            $this->renderView('login', ['title' => 'Login', 'error' => 'Username or email and password are required']);
             return;
         }
 
-        $user = $this->userModel->findByUsername($username);
+        $user = $this->userModel->findByUsername($identifier);
+        if (!$user && isValidEmail($identifier)) {
+            $user = $this->userModel->findByEmail($identifier);
+        }
         if (!$user || !verifyPassword($password, $user['password_hash'])) {
             if ($this->isAjaxRequest()) {
                 $this->jsonResponse(false, ['error' => 'Invalid username or password']);

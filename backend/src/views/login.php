@@ -11,7 +11,7 @@
         <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
         
         <div class="form-group">
-            <label for="username">Username</label>
+            <label for="username">Username or Email</label>
             <input type="text" id="username" name="username" required autofocus autocomplete="username">
         </div>
 
