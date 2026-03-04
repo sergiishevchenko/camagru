@@ -1115,6 +1115,7 @@ button[type="submit"]:disabled {
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
+    transition: color var(--transition);
 }
 
 .load-more-status.loading {
@@ -1122,8 +1123,15 @@ button[type="submit"]:disabled {
 }
 
 .load-more-status.loading::before {
-    content: '↻ ';
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(108, 92, 231, 0.22);
+    border-top-color: var(--primary);
+    border-radius: 50%;
     display: inline-block;
+    vertical-align: -2px;
+    margin-right: 8px;
     animation: spin 1s linear infinite;
 }
 

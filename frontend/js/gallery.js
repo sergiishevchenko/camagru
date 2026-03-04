@@ -164,10 +164,24 @@
         var grid = container.querySelector('.gallery-grid');
         var currentPageEl = document.getElementById('current-page');
         var currentPageNum = 1;
+        var userInteracted = false;
+        var initialScrollY = window.scrollY || window.pageYOffset || 0;
+        var loadDelayMs = 450;
+        var minLoadingVisibleMs = 450;
+        var pendingLoadTimer = null;
 
         function loadMore() {
+            if (loading || !nextPage || pendingLoadTimer) return;
+            pendingLoadTimer = setTimeout(function() {
+                pendingLoadTimer = null;
+                loadMoreNow();
+            }, loadDelayMs);
+        }
+
+        function loadMoreNow() {
             if (loading || !nextPage) return;
             loading = true;
+            var loadingStart = Date.now();
             if (statusEl) {
                 statusEl.style.display = 'block';
                 statusEl.textContent = 'Loading more photos...';
@@ -176,6 +190,9 @@
             fetch('/?page=' + nextPage + '&format=json')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
+                    var elapsed = Date.now() - loadingStart;
+                    var extraDelay = Math.max(0, minLoadingVisibleMs - elapsed);
+                    setTimeout(function() {
                     if (data.images && data.images.length) {
                         var totalPages = document.getElementById('total-pages');
                         var tp = totalPages ? totalPages.textContent : '?';
@@ -202,20 +219,43 @@
                         }
                     }
                     loading = false;
+                    }, extraDelay);
                 })
                 .catch(function() {
+                    var elapsed = Date.now() - loadingStart;
+                    var extraDelay = Math.max(0, minLoadingVisibleMs - elapsed);
+                    setTimeout(function() {
                     if (statusEl) {
                         statusEl.textContent = 'Failed to load more';
                         statusEl.className = 'load-more-status';
                         statusEl.style.display = 'block';
                     }
                     loading = false;
+                    }, extraDelay);
                 });
         }
 
+        function tryLoadFromViewport() {
+            if (!userInteracted || loading || !nextPage) return;
+            var rect = sentinel.getBoundingClientRect();
+            if (rect.top <= window.innerHeight + 200) {
+                loadMore();
+            }
+        }
+
+        function markInteracted() {
+            var currentY = window.scrollY || window.pageYOffset || 0;
+            if (!userInteracted && currentY > initialScrollY + 120) {
+                userInteracted = true;
+            }
+            tryLoadFromViewport();
+        }
+
         var observer = new IntersectionObserver(function(entries) {
+            if (!userInteracted) return;
             if (entries[0].isIntersecting && nextPage && !loading) loadMore();
         }, { rootMargin: '200px', threshold: 0 });
         observer.observe(sentinel);
+        window.addEventListener('scroll', markInteracted, { passive: true });
     }
 })();

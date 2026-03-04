@@ -15,7 +15,7 @@ class GalleryController {
 
     public function index() {
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = 9;
+        $perPage = 6;
 
         $images = $this->imageModel->getAll($page, $perPage);
         $totalImages = $this->imageModel->getTotalCount();
