@@ -3,6 +3,9 @@
 <div class="image-view-container">
     <div class="image-view-card">
         <div class="image-view-photo">
+            <?php if (!empty($isOwner)): ?>
+                <button class="image-view-delete" data-image-id="<?php echo (int)$image['id']; ?>" aria-label="Delete photo">×</button>
+            <?php endif; ?>
             <img src="/uploads/<?php echo e($image['filename']); ?>" alt="Photo by <?php echo e($image['username']); ?>">
         </div>
         <div class="image-view-details">
@@ -49,3 +52,51 @@
         </div>
     </div>
 </div>
+
+<?php if (!empty($isOwner)): ?>
+<script>
+(function() {
+    function getCSRFToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.content;
+        var input = document.querySelector('input[name="csrf_token"]');
+        return input ? input.value : '';
+    }
+
+    var btn = document.querySelector('.image-view-delete');
+    if (!btn) return;
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.confirmModal('Delete this photo?').then(function(ok) {
+            if (!ok) return;
+            var imageId = btn.dataset.imageId;
+            var token = getCSRFToken();
+            if (!token) {
+                window.alertModal('CSRF token not found');
+                return;
+            }
+            btn.disabled = true;
+            fetch('/image/' + imageId, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf_token: token })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    window.alertModal(data.error || 'Failed to delete image');
+                    btn.disabled = false;
+                }
+            })
+            .catch(function() {
+                window.alertModal('An error occurred');
+                btn.disabled = false;
+            });
+        });
+    });
+})();
+</script>
+<?php endif; ?>

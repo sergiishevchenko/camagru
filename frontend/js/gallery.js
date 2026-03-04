@@ -47,7 +47,6 @@
         const likeCount = image.like_count || 0;
         const likedClass = image.is_liked ? ' liked' : '';
         const disabledAttr = isAuthenticated ? '' : ' disabled';
-        const deleteBtn = image.is_owner ? '<button class="delete-image" data-image-id="' + image.id + '">×</button>' : '';
         const imageMediaUrl = baseUrl + '/uploads/' + image.filename;
         const shareBtns = '<div class="share-buttons">' +
             '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '" target="_blank" rel="noopener noreferrer" class="share-btn share-fb" title="Share on Facebook">f</a>' +
@@ -61,7 +60,7 @@
             '<button type="submit">Post</button></form>' : '';
         return '<div class="image-card" id="image-' + image.id + '">' +
             '<div class="image-wrapper">' +
-            '<a href="/image/' + image.id + '"><img src="/uploads/' + escapedFilename + '" alt="Photo by ' + escapedUsername + '"></a>' + deleteBtn +
+            '<a href="/image/' + image.id + '"><img src="/uploads/' + escapedFilename + '" alt="Photo by ' + escapedUsername + '"></a>' +
             '</div>' +
             '<div class="image-info">' +
             '<div class="image-meta">' +
@@ -136,42 +135,11 @@
         });
     }
 
-    function deleteImage(btn) {
-        window.confirmModal('Delete this photo?').then(function(ok) {
-            if (!ok) return;
-            var imageId = btn.dataset.imageId;
-            var token = getCSRFToken();
-            if (!token) return;
-            btn.disabled = true;
-            fetch('/image/' + imageId, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ csrf_token: token })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    var card = document.getElementById('image-' + imageId);
-                    if (card) card.remove();
-                } else {
-                    window.alertModal(data.error || 'Failed to delete image');
-                    btn.disabled = false;
-                }
-            })
-            .catch(function() {
-                window.alertModal('An error occurred');
-                btn.disabled = false;
-            });
-        });
-    }
-
     var container = document.querySelector('.gallery-container');
     if (container) {
         container.addEventListener('click', function(e) {
             var target = e.target.closest('.like-btn');
             if (target) { e.preventDefault(); toggleLike(target); return; }
-            target = e.target.closest('.delete-image');
-            if (target) { e.preventDefault(); deleteImage(target); return; }
         });
         container.addEventListener('submit', function(e) {
             var form = e.target.closest('.comment-form');

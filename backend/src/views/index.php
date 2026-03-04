@@ -22,9 +22,6 @@
                         <a href="/image/<?php echo $image['id']; ?>">
                             <img src="/uploads/<?php echo e($image['filename']); ?>" alt="Photo by <?php echo e($image['username']); ?>">
                         </a>
-                        <?php if (isset($image['is_owner']) && $image['is_owner']): ?>
-                            <button class="delete-image" data-image-id="<?php echo $image['id']; ?>">×</button>
-                        <?php endif; ?>
                     </div>
                     <div class="image-info">
                         <div class="image-meta">

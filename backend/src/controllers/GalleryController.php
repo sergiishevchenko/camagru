@@ -66,6 +66,8 @@ class GalleryController {
         $commentModel = new Comment();
         $likeCount = $likeModel->getCount($id);
         $comments = $commentModel->getByImageId($id);
+        $currentUserId = getCurrentUserId();
+        $isOwner = $currentUserId && (int)$image['user_id'] === (int)$currentUserId;
 
         $baseUrl = getBaseUrl();
         $imageUrl = $baseUrl . '/uploads/' . $image['filename'];
@@ -74,6 +76,7 @@ class GalleryController {
         $this->renderView('image', [
             'title' => $title,
             'image' => $image,
+            'isOwner' => $isOwner,
             'imageUrl' => $imageUrl,
             'likeCount' => $likeCount,
             'comments' => $comments,
