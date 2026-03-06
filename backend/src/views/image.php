@@ -56,6 +56,25 @@
 <?php if (!empty($isOwner)): ?>
 <script>
 (function() {
+    function ajaxNavigate(url) {
+        fetch(url, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            document.open();
+            document.write(html);
+            document.close();
+            try {
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
+        })
+        .catch(function() {
+            window.location.href = url;
+        });
+    }
+
     function getCSRFToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
         if (meta) return meta.content;
@@ -85,7 +104,7 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
-                    window.location.href = '/';
+                    ajaxNavigate('/');
                 } else {
                     window.alertModal(data.error || 'Failed to delete image');
                     btn.disabled = false;
