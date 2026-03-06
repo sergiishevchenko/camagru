@@ -48,6 +48,7 @@
         el.style.display = 'block';
         var e = form.closest('.auth-form').querySelector('.error');
         if (e) e.style.display = 'none';
+        return el;
     }
 
     function getCSRFToken() {
@@ -65,6 +66,25 @@
             }
         }
         return data;
+    }
+
+    function ajaxNavigate(url) {
+        fetch(url, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            document.open();
+            document.write(html);
+            document.close();
+            try {
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
+        })
+        .catch(function() {
+            window.location.href = url;
+        });
     }
 
     form.addEventListener('submit', function(e) {
@@ -87,11 +107,18 @@
         .then(function(r) { return r.json(); })
         .then(function(res) {
             if (res.success) {
+                var successText = res.message || 'Success.';
                 if (res.redirect) {
-                    window.location.href = res.redirect;
-                    return;
+                    successText = 'Success. You are now authenticated.';
                 }
-                showSuccess(res.message || 'Success.');
+                showSuccess(successText);
+                form.reset();
+                if (submitBtn) submitBtn.disabled = false;
+                if (res.redirect) {
+                    setTimeout(function() {
+                        ajaxNavigate(res.redirect);
+                    }, 250);
+                }
             } else {
                 if (res.errors && res.errors.length) {
                     showErrors(res.errors);
