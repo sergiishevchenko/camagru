@@ -14,28 +14,43 @@ function flattenToOpaque($srcImage) {
 
 function applyOverlay($sourceImage, $overlayId) {
     if (empty($overlayId)) return $sourceImage;
-
-    $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
-    if (!file_exists($overlayPath)) return $sourceImage;
-
-    $overlayImage = imagecreatefrompng($overlayPath);
-    if ($overlayImage === false) return $sourceImage;
+    $ids = [];
+    if (is_array($overlayId)) {
+        $ids = $overlayId;
+    } else {
+        $ids = explode(',', (string)$overlayId);
+    }
+    $clean = [];
+    foreach ($ids as $id) {
+        $id = trim((string)$id);
+        if ($id !== '') $clean[] = $id;
+    }
+    if (empty($clean)) return $sourceImage;
 
     $sw = imagesx($sourceImage);
     $sh = imagesy($sourceImage);
-    $ow = imagesx($overlayImage);
-    $oh = imagesy($overlayImage);
 
-    $resized = imagecreatetruecolor($sw, $sh);
-    imagesavealpha($resized, true);
-    $trans = imagecolorallocatealpha($resized, 0, 0, 0, 127);
-    imagefill($resized, 0, 0, $trans);
-    imagecopyresampled($resized, $overlayImage, 0, 0, 0, 0, $sw, $sh, $ow, $oh);
-    imagedestroy($overlayImage);
+    foreach ($clean as $one) {
+        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $one . '.png';
+        if (!file_exists($overlayPath)) continue;
 
-    imagealphablending($sourceImage, true);
-    imagecopy($sourceImage, $resized, 0, 0, 0, 0, $sw, $sh);
-    imagedestroy($resized);
+        $overlayImage = imagecreatefrompng($overlayPath);
+        if ($overlayImage === false) continue;
+
+        $ow = imagesx($overlayImage);
+        $oh = imagesy($overlayImage);
+
+        $resized = imagecreatetruecolor($sw, $sh);
+        imagesavealpha($resized, true);
+        $trans = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+        imagefill($resized, 0, 0, $trans);
+        imagecopyresampled($resized, $overlayImage, 0, 0, 0, 0, $sw, $sh, $ow, $oh);
+        imagedestroy($overlayImage);
+
+        imagealphablending($sourceImage, true);
+        imagecopy($sourceImage, $resized, 0, 0, 0, 0, $sw, $sh);
+        imagedestroy($resized);
+    }
 
     return $sourceImage;
 }

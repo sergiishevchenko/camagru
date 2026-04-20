@@ -1,9 +1,10 @@
 (function() {
     let stream = null;
-    let selectedOverlay = null;
+    let selectedOverlays = [];
+    let overlayChoiceMade = false;
     let capturedImage = null;
     let capturedImageObj = null;
-    let overlayImage = null;
+    let overlayImages = [];
     let previewAnimationId = null;
     let gifFrames = [];
 
@@ -33,7 +34,7 @@
 
     function updateSteps() {
         var hasSource = !!(stream || capturedImage);
-        var hasOverlay = !!selectedOverlay;
+        var hasOverlay = overlayChoiceMade;
         if (step1) {
             step1.className = hasSource ? 'step done' : 'step active';
         }
@@ -72,10 +73,6 @@
     }
 
     function drawLivePreview() {
-        if (!previewCanvas || !overlayImage || !overlayImage.complete || !overlayImage.naturalWidth) {
-            previewAnimationId = requestAnimationFrame(drawLivePreview);
-            return;
-        }
         if (!stream || video.readyState < 2) {
             previewCanvas.style.display = 'none';
             previewAnimationId = requestAnimationFrame(drawLivePreview);
@@ -89,7 +86,12 @@
         }
         var ctx = previewCanvas.getContext('2d');
         ctx.drawImage(video, 0, 0);
-        ctx.drawImage(overlayImage, 0, 0, w, h);
+        for (var i = 0; i < overlayImages.length; i++) {
+            var o = overlayImages[i];
+            if (o && o.complete && o.naturalWidth) {
+                ctx.drawImage(o, 0, 0, w, h);
+            }
+        }
         previewCanvas.style.display = 'block';
         previewAnimationId = requestAnimationFrame(drawLivePreview);
     }
@@ -102,8 +104,11 @@
         canvas.height = h;
         var ctx = canvas.getContext('2d');
         ctx.drawImage(capturedImageObj, 0, 0);
-        if (overlayImage && overlayImage.complete && overlayImage.naturalWidth) {
-            ctx.drawImage(overlayImage, 0, 0, w, h);
+        for (var i = 0; i < overlayImages.length; i++) {
+            var o = overlayImages[i];
+            if (o && o.complete && o.naturalWidth) {
+                ctx.drawImage(o, 0, 0, w, h);
+            }
         }
         preview.src = canvas.toDataURL('image/png');
     }
@@ -130,7 +135,7 @@
 
     function loadOverlayForPreview(name) {
         if (!name) {
-            overlayImage = null;
+            overlayImages = [];
             stopLivePreview();
             if (capturedImage) {
                 preview.src = capturedImage;
@@ -140,13 +145,38 @@
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = function() {
-            overlayImage = img;
+            overlayImages = [img];
             startLivePreview();
         };
         img.onerror = function() {
-            overlayImage = null;
+            overlayImages = [];
         };
         img.src = '/images/overlays/' + name + '.png';
+    }
+
+    function loadOverlaysForPreview(names) {
+        if (!Array.isArray(names) || names.length === 0) {
+            overlayImages = [];
+            stopLivePreview();
+            if (capturedImage) preview.src = capturedImage;
+            return;
+        }
+        overlayImages = [];
+        var remaining = names.length;
+        names.forEach(function(name) {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                overlayImages.push(img);
+                remaining--;
+                if (remaining <= 0) startLivePreview();
+            };
+            img.onerror = function() {
+                remaining--;
+                if (remaining <= 0) startLivePreview();
+            };
+            img.src = '/images/overlays/' + name + '.png';
+        });
     }
 
     function getRawFrameAsBase64() {
@@ -184,10 +214,6 @@
 
     if (addGifFrameBtn) {
         addGifFrameBtn.addEventListener('click', function() {
-            if (!selectedOverlay) {
-                showMessage('Please select an overlay first', true);
-                return;
-            }
             const base64 = getRawFrameAsBase64();
             if (!base64) {
                 showMessage('Could not capture frame', true);
@@ -217,7 +243,7 @@
             fetch('/edit/gif', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ frames: gifFrames, overlay_id: selectedOverlay || '', csrf_token: token })
+                body: JSON.stringify({ frames: gifFrames, overlay_id: selectedOverlays, csrf_token: token })
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -260,11 +286,11 @@
             await video.play();
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
-            captureBtn.disabled = !selectedOverlay;
-            if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
-            if (selectedOverlay && overlayImage) startLivePreview();
+            captureBtn.disabled = false;
+            if (addGifFrameBtn) addGifFrameBtn.disabled = false;
+            if (selectedOverlays.length) loadOverlaysForPreview(selectedOverlays.slice());
             updateSteps();
-            showMessage('Camera ready! Select an overlay, then capture.', false);
+            showMessage('Camera ready! You can capture now.', false);
             var overlaySection = document.querySelector('.overlay-section');
             if (overlaySection) {
                 setTimeout(function() {
@@ -303,10 +329,6 @@
     });
 
     captureBtn.addEventListener('click', function() {
-        if (!selectedOverlay) {
-            showMessage('Please select an overlay first', true);
-            return;
-        }
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
@@ -349,9 +371,9 @@
             capturedImageObj = new Image();
             capturedImageObj.onload = function() {
                 previewContainer.style.display = 'block';
-                captureBtn.disabled = !selectedOverlay;
-                if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay;
-                if (selectedOverlay && overlayImage) {
+                captureBtn.disabled = false;
+                if (addGifFrameBtn) addGifFrameBtn.disabled = false;
+                if (selectedOverlays.length) {
                     updateUploadPreview();
                 } else {
                     preview.src = capturedImage;
@@ -364,10 +386,6 @@
     });
 
     usePreviewBtn.addEventListener('click', function() {
-        if (!selectedOverlay) {
-            showMessage('Please select an overlay first', true);
-            return;
-        }
         if (fileInput.files && fileInput.files[0]) {
             sendUploadedFile(fileInput.files[0]);
         } else if (capturedImage) {
@@ -386,18 +404,38 @@
 
     overlayItems.forEach(item => {
         item.addEventListener('click', function() {
-            overlayItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            selectedOverlay = this.dataset.overlay;
-            selectedOverlayName.textContent = selectedOverlay;
-            overlaySelected.style.display = 'block';
-            captureBtn.disabled = !selectedOverlay || (!stream && !capturedImage);
-            if (addGifFrameBtn) addGifFrameBtn.disabled = !selectedOverlay || (!stream && !capturedImage);
-            if (selectedOverlay) {
-                loadOverlayForPreview(selectedOverlay);
+            overlayChoiceMade = true;
+            var val = (this.dataset.overlay || '').trim();
+            if (val === '') {
+                selectedOverlays = [];
+                overlayItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
             } else {
-                stopLivePreview();
+                var idx = selectedOverlays.indexOf(val);
+                if (idx >= 0) {
+                    selectedOverlays.splice(idx, 1);
+                    this.classList.remove('active');
+                } else {
+                    selectedOverlays.push(val);
+                    this.classList.add('active');
+                }
+                overlayItems.forEach(function(i) {
+                    if ((i.dataset.overlay || '').trim() === '') i.classList.remove('active');
+                });
             }
+
+            if (selectedOverlays.length) {
+                selectedOverlayName.textContent = selectedOverlays.length === 1 ? selectedOverlays[0] : (selectedOverlays.length + ' selected');
+                overlaySelected.style.display = 'inline-flex';
+                loadOverlaysForPreview(selectedOverlays.slice());
+            } else {
+                selectedOverlayName.textContent = 'None';
+                overlaySelected.style.display = 'inline-flex';
+                loadOverlaysForPreview([]);
+            }
+
+            captureBtn.disabled = (!stream && !capturedImage);
+            if (addGifFrameBtn) addGifFrameBtn.disabled = (!stream && !capturedImage);
             updateSteps();
         });
     });
@@ -446,7 +484,9 @@
 
         var formData = new FormData();
         formData.append('image', file);
-        formData.append('overlay_id', selectedOverlay || '');
+        selectedOverlays.forEach(function(o) {
+            formData.append('overlay_ids[]', o);
+        });
         formData.append('csrf_token', token);
 
         fetch('/edit/upload', {
@@ -495,7 +535,7 @@
             },
             body: JSON.stringify({
                 image: imageData,
-                overlay_id: selectedOverlay || '',
+                overlay_id: selectedOverlays,
                 csrf_token: token
             })
         })

@@ -63,7 +63,7 @@ class ImageController {
             return;
         }
 
-        $overlayId = !empty($data['overlay_id']) ? $data['overlay_id'] : null;
+        $overlayId = $data['overlay_id'] ?? null;
         $result = processImageWithOverlay($data['image'], $overlayId);
         
         if (!$result['success']) {
@@ -73,7 +73,8 @@ class ImageController {
         }
 
         $userId = getCurrentUserId();
-        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayId);
+        $overlayDbValue = is_array($overlayId) ? implode(',', $overlayId) : $overlayId;
+        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayDbValue);
 
         echo json_encode([
             'success' => true,
@@ -150,7 +151,12 @@ class ImageController {
             return;
         }
 
-        $overlayId = !empty($_POST['overlay_id']) ? $_POST['overlay_id'] : null;
+        $overlayId = null;
+        if (isset($_POST['overlay_id'])) {
+            $overlayId = $_POST['overlay_id'];
+        } elseif (isset($_POST['overlay_ids']) && is_array($_POST['overlay_ids'])) {
+            $overlayId = $_POST['overlay_ids'];
+        }
         $result = processUploadedImage($_FILES['image'], $overlayId);
         
         if (!$result['success']) {
@@ -160,7 +166,8 @@ class ImageController {
         }
 
         $userId = getCurrentUserId();
-        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayId);
+        $overlayDbValue = is_array($overlayId) ? implode(',', $overlayId) : $overlayId;
+        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayDbValue);
 
         echo json_encode([
             'success' => true,

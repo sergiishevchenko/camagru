@@ -75,6 +75,10 @@
                     <?php if (empty($overlays)): ?>
                         <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
                     <?php else: ?>
+                        <div class="overlay-item" data-overlay="">
+                            <div class="overlay-preview"></div>
+                            <span>None</span>
+                        </div>
                         <?php foreach ($overlays as $overlay): ?>
                             <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
                                 <div class="overlay-preview">
