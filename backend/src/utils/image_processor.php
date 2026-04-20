@@ -1,5 +1,22 @@
 <?php
 
+function resizeDown($srcImage, $maxDim = 1920) {
+    $w = imagesx($srcImage);
+    $h = imagesy($srcImage);
+    if ($w <= 0 || $h <= 0) return $srcImage;
+    if ($w <= $maxDim && $h <= $maxDim) return $srcImage;
+    $scale = ($w >= $h) ? ($maxDim / $w) : ($maxDim / $h);
+    $nw = max(1, (int) floor($w * $scale));
+    $nh = max(1, (int) floor($h * $scale));
+    $dst = imagecreatetruecolor($nw, $nh);
+    $white = imagecolorallocate($dst, 255, 255, 255);
+    imagefill($dst, 0, 0, $white);
+    imagealphablending($dst, true);
+    imagecopyresampled($dst, $srcImage, 0, 0, 0, 0, $nw, $nh, $w, $h);
+    imagedestroy($srcImage);
+    return $dst;
+}
+
 function flattenToOpaque($srcImage) {
     $w = imagesx($srcImage);
     $h = imagesy($srcImage);
@@ -76,6 +93,7 @@ function processImageWithOverlay($base64Image, $overlayId = null) {
         return ['success' => false, 'error' => 'Unsupported image format (decoded=' . strlen($imageData) . ' bytes, header=' . bin2hex(substr($imageData, 0, 4)) . ')'];
     }
 
+    $sourceImage = resizeDown($sourceImage);
     $sourceImage = flattenToOpaque($sourceImage);
     $sourceImage = applyOverlay($sourceImage, $overlayId);
 
@@ -143,6 +161,7 @@ function processUploadedImage($uploadedFile, $overlayId = null) {
         return ['success' => false, 'error' => 'Failed to create image from file'];
     }
 
+    $sourceImage = resizeDown($sourceImage);
     $sourceImage = flattenToOpaque($sourceImage);
     $sourceImage = applyOverlay($sourceImage, $overlayId);
 
@@ -182,13 +201,23 @@ function createAnimatedGif(array $base64Frames, $overlayId = null, $delayTicks =
     if (count($base64Frames) < 2 || count($base64Frames) > 30) {
         return ['success' => false, 'error' => 'Between 2 and 30 frames required'];
     }
-    $overlayBlob = null;
+    $overlayBlobs = [];
     if (!empty($overlayId)) {
-        $overlayPath = __DIR__ . '/../../public/images/overlays/' . $overlayId . '.png';
-        if (!file_exists($overlayPath)) {
-            return ['success' => false, 'error' => 'Overlay not found'];
+        $ids = [];
+        if (is_array($overlayId)) {
+            $ids = $overlayId;
+        } else {
+            $ids = explode(',', (string)$overlayId);
         }
-        $overlayBlob = file_get_contents($overlayPath);
+        foreach ($ids as $one) {
+            $one = trim((string)$one);
+            if ($one === '') continue;
+            $overlayPath = __DIR__ . '/../../public/images/overlays/' . $one . '.png';
+            if (!file_exists($overlayPath)) {
+                return ['success' => false, 'error' => 'Overlay not found'];
+            }
+            $overlayBlobs[] = file_get_contents($overlayPath);
+        }
     }
     $uploadDir = __DIR__ . '/../../public/uploads/';
     if (!is_dir($uploadDir)) {
@@ -204,12 +233,14 @@ function createAnimatedGif(array $base64Frames, $overlayId = null, $delayTicks =
             }
             $frame = new Imagick();
             $frame->readImageBlob($data);
-            if ($overlayBlob !== null) {
-                $overlay = new Imagick();
-                $overlay->readImageBlob($overlayBlob);
-                $overlay->resizeImage($frame->getImageWidth(), $frame->getImageHeight(), Imagick::FILTER_LANCZOS, 1);
-                $frame->compositeImage($overlay, Imagick::COMPOSITE_OVER, 0, 0);
-                $overlay->destroy();
+            if (!empty($overlayBlobs)) {
+                foreach ($overlayBlobs as $blob) {
+                    $overlay = new Imagick();
+                    $overlay->readImageBlob($blob);
+                    $overlay->resizeImage($frame->getImageWidth(), $frame->getImageHeight(), Imagick::FILTER_LANCZOS, 1);
+                    $frame->compositeImage($overlay, Imagick::COMPOSITE_OVER, 0, 0);
+                    $overlay->destroy();
+                }
             }
             $frame->setImageDelay($delayTicks);
             $frame->setImageFormat('gif');
