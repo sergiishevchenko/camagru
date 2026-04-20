@@ -103,9 +103,23 @@ function processUploadedImage($uploadedFile, $overlayId = null) {
     }
 
     $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $uploadedFile['tmp_name']);
-    finfo_close($finfo);
+    $mimeType = null;
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $mimeType = finfo_file($finfo, $uploadedFile['tmp_name']);
+            finfo_close($finfo);
+        }
+    }
+    if (empty($mimeType)) {
+        $mimeType = $uploadedFile['type'] ?? '';
+    }
+    if (empty($mimeType)) {
+        $ext = strtolower(pathinfo($uploadedFile['name'] ?? '', PATHINFO_EXTENSION));
+        if ($ext === 'jpg' || $ext === 'jpeg') $mimeType = 'image/jpeg';
+        elseif ($ext === 'png') $mimeType = 'image/png';
+        elseif ($ext === 'gif') $mimeType = 'image/gif';
+    }
 
     if (!in_array($mimeType, $allowedTypes)) {
         return ['success' => false, 'error' => 'Invalid file type'];

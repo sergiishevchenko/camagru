@@ -139,41 +139,46 @@ class ImageController {
             return;
         }
 
-        if (!isset($_FILES['image'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Missing required fields']);
-            return;
-        }
+        try {
+            if (!isset($_FILES['image'])) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+                return;
+            }
 
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
-            return;
-        }
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
+                return;
+            }
 
-        $overlayId = null;
-        if (isset($_POST['overlay_id'])) {
-            $overlayId = $_POST['overlay_id'];
-        } elseif (isset($_POST['overlay_ids']) && is_array($_POST['overlay_ids'])) {
-            $overlayId = $_POST['overlay_ids'];
-        }
-        $result = processUploadedImage($_FILES['image'], $overlayId);
+            $overlayId = null;
+            if (isset($_POST['overlay_id'])) {
+                $overlayId = $_POST['overlay_id'];
+            } elseif (isset($_POST['overlay_ids']) && is_array($_POST['overlay_ids'])) {
+                $overlayId = $_POST['overlay_ids'];
+            }
+            $result = processUploadedImage($_FILES['image'], $overlayId);
         
-        if (!$result['success']) {
-            http_response_code(400);
-            echo json_encode($result);
-            return;
+            if (!$result['success']) {
+                http_response_code(400);
+                echo json_encode($result);
+                return;
+            }
+
+            $userId = getCurrentUserId();
+            $overlayDbValue = is_array($overlayId) ? implode(',', $overlayId) : $overlayId;
+            $imageId = $this->imageModel->create($userId, $result['filename'], $overlayDbValue);
+
+            echo json_encode([
+                'success' => true,
+                'image_id' => $imageId,
+                'filename' => $result['filename']
+            ]);
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Server error']);
         }
-
-        $userId = getCurrentUserId();
-        $overlayDbValue = is_array($overlayId) ? implode(',', $overlayId) : $overlayId;
-        $imageId = $this->imageModel->create($userId, $result['filename'], $overlayDbValue);
-
-        echo json_encode([
-            'success' => true,
-            'image_id' => $imageId,
-            'filename' => $result['filename']
-        ]);
     }
 
     public function delete($id) {
