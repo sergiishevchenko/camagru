@@ -37,8 +37,6 @@
 
 html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
-    overflow-y: scroll;
 }
 
 body {
@@ -48,14 +46,9 @@ body {
     background-color: var(--bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
 }
 
 .container {
-    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -135,13 +128,13 @@ header nav a:last-child:hover {
 }
 
 main {
+    min-height: calc(100vh - 180px);
     padding: 32px 0;
-    flex: 1 0 auto;
 }
 
 footer {
     background: #1A1A2E;
-    margin-top: auto;
+    margin-top: 60px;
     padding: 36px 0;
     text-align: center;
 }
@@ -169,10 +162,7 @@ footer p {
 }
 
 .auth-form {
-    display: block;
-    width: 100%;
     max-width: 420px;
-    width: min(420px, 100%);
     margin: 40px auto;
     background: var(--surface);
     padding: 40px 36px;
@@ -273,7 +263,6 @@ button[type="submit"]:disabled {
     font-size: 14px;
     border-left: 4px solid var(--danger);
     line-height: 1.5;
-    overflow-wrap: anywhere;
 }
 
 .error ul {
@@ -294,7 +283,6 @@ button[type="submit"]:disabled {
     font-size: 14px;
     border-left: 4px solid #28A745;
     line-height: 1.5;
-    overflow-wrap: anywhere;
 }
 
 .success a {

@@ -2,60 +2,6 @@
 
 Web app for creating photos with a webcam or uploaded image, applying PNG overlays, and sharing results in a public gallery.
 
-## Screenshots
-
-This section shows the main user flows of the app from onboarding to creating images.
-
-### 1) Registration → Email verification → Login
-
-**Goal:** Create an account, verify it via email, then login and access authenticated routes.
-
-1) **Registration page** — create a new account with username, email and password.
-
-![Registration](screenshots/registration.png)
-
-2) **Login page** — login is allowed only after email verification.
-
-![Login](screenshots/login.png)
-
-3) **Verification email in MailHog** — in development, all outgoing emails are captured by MailHog.
-   Open MailHog at `http://localhost:8025`, open the verification email, and follow the verification link.
-
-![Verification code email (MailHog)](screenshots/verification%20code.png)
-
-4) **Redirect after verification** — after clicking the verification link, the account becomes verified and the app redirects you back.
-
-![Redirect after verification](screenshots/redirect_afte_verification.png)
-
-5) **After login** — once authenticated, navigation changes and protected pages (like `/edit` and `/profile`) become available.
-
-![After login](screenshots/after_login.png)
-
-### 2) Create a photo (webcam or upload) + apply PNG overlays
-
-**Goal:** Capture from webcam or upload an image, pick one (or multiple) overlay(s), and save the resulting image.
-
-1) **Edit page — camera/upload step** — start the camera (or upload a file) and prepare the source image.
-
-![Edit page: capture/upload](screenshots/edit_1.png)
-
-2) **Edit page — overlay selection & live preview** — select an overlay; the preview canvas updates live.
-   The final compositing is performed server-side when you click “Capture” / “Use This Image”.
-
-![Edit page: overlays & preview](screenshots/edit_2.png)
-
-### 3) Profile & notifications
-
-**Goal:** Manage account details and comment notification preferences.
-
-1) **Profile page** — view account information and toggle email notifications for new comments.
-
-![Profile](screenshots/profile.png)
-
-2) **MailHog inbox** — comment notifications, password resets, and verification emails are visible here in development.
-
-![MailHog](screenshots/mailfog.png)
-
 ## Quick Start
 
 Create `.env` in the project root (see Installation for variables), then:

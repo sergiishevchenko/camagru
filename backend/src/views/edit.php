@@ -72,18 +72,22 @@
                     <span id="overlay-selected" class="overlay-tag" style="display: none;">&#10003; <span id="selected-overlay-name"></span></span>
                 </div>
                 <div class="overlay-list">
-                    <div class="overlay-item" data-overlay="">
-                        <div class="overlay-preview"></div>
-                        <span>None</span>
-                    </div>
-                    <?php foreach (($overlays ?? []) as $overlay): ?>
-                        <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
-                            <div class="overlay-preview">
-                                <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
-                            </div>
-                            <span><?php echo e($overlay); ?></span>
+                    <?php if (empty($overlays)): ?>
+                        <p class="no-photos">No overlays available. Add PNG images to <code>frontend/images/overlays/</code></p>
+                    <?php else: ?>
+                        <div class="overlay-item" data-overlay="">
+                            <div class="overlay-preview"></div>
+                            <span>None</span>
                         </div>
-                    <?php endforeach; ?>
+                        <?php foreach ($overlays as $overlay): ?>
+                            <div class="overlay-item" data-overlay="<?php echo e($overlay); ?>">
+                                <div class="overlay-preview">
+                                    <img src="/images/overlays/<?php echo e($overlay); ?>.png" alt="<?php echo e($overlay); ?>" onerror="this.style.display='none'">
+                                </div>
+                                <span><?php echo e($overlay); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
